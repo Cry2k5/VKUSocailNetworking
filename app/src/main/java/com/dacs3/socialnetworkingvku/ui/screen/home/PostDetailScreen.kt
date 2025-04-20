@@ -46,16 +46,6 @@ fun PostDetailScreen() {
 
         Divider()
 
-        PostItem(
-            username = "Hứa Huỳnh Anh",
-            date = "October 11",
-            content = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc enim, porttitor",
-            imageRes = R.drawable.demo_image_background,
-            stats = "😍😢❤️ 177    42 bình luận  5 lượt chia sẻ"
-        )
-
-        Divider()
-
         // Danh sách bình luận
         LazyColumn(
             modifier = Modifier

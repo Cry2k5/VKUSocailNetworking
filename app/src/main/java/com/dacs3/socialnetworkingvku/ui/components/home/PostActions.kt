@@ -4,17 +4,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun PostActions() {
+fun PostActions(
+    onLikeClick: () -> Unit = {},
+    onCommentClick: () -> Unit = {},
+    onShareClick: () -> Unit = {}
+) {
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("👍 Thích")
-        Text("💬 Bình luận")
-        Text("↪ Chia sẻ")
+        TextButton(onClick = onLikeClick) {
+            Text("👍 Thích")
+        }
+        TextButton(onClick = onCommentClick) {
+            Text("💬 Bình luận")
+        }
+        TextButton(onClick = onShareClick) {
+            Text("↪ Chia sẻ")
+        }
     }
 }

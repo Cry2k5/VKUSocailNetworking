@@ -31,6 +31,9 @@ fun RegisterScreen(onBackClick: () -> Unit = {}) {
     var address by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var password_repeat by remember { mutableStateOf("") }
+
+
 
     val scrollState = rememberScrollState()
 
@@ -58,6 +61,7 @@ fun RegisterScreen(onBackClick: () -> Unit = {}) {
         CustomTextField(value = address, onValueChange = { address = it }, label = "Địa chỉ")
         CustomTextField(value = phoneNumber, onValueChange = { phoneNumber = it }, label = "Số điện thoại", keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
         CustomTextField(value = password, onValueChange = { password = it }, label = "Password", visualTransformation = PasswordVisualTransformation())
+        CustomTextField(value = password_repeat, onValueChange = { password_repeat = it }, label = "Nhập lại password", visualTransformation = PasswordVisualTransformation())
 
         ButtonCustom(
             onClick = { },

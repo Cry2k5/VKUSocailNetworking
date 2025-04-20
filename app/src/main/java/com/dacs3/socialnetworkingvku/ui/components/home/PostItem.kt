@@ -28,14 +28,57 @@ import com.dacs3.socialnetworkingvku.R
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable
-fun PostItem(username: String, date: String, content: String, imageRes: Int, stats: String) {
+fun PostItem(
+    username: String,
+    date: Long,
+    imgAvatar: String,
+    content: String,
+    imgContent: String,
+    likeCount: Int,
+    commentCount: Int,
+    shareCount: Int,
+    onLikeClick: () -> Unit = {},
+    onCommentClick: () -> Unit = {},
+    onShareClick: () -> Unit = {}
+) {
     Column(modifier = Modifier.padding(16.dp)) {
-        PostHeader(username = username, date = date)
+        PostHeader(username = username, date = date, imgAvatar = imgAvatar)
         Spacer(modifier = Modifier.height(8.dp))
-        PostContent(content = content, imageRes = imageRes)
+        PostContent(content = content, imgContent = imgContent)
         Spacer(modifier = Modifier.height(8.dp))
-        PostStats(stats = stats)
+        PostStats(
+            likeCount = likeCount,
+            commentCount = commentCount,
+            shareCount = shareCount
+        )
         Spacer(modifier = Modifier.height(4.dp))
-        PostActions()
+        PostActions(
+            onLikeClick = onLikeClick,
+            onCommentClick = onCommentClick,
+            onShareClick = onShareClick
+        )
     }
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun PostItemPreview() {
+//    val media = listOf(
+//        MediaItem("https://placekitten.com/800/400", PostMediaType.IMAGE),
+//        MediaItem("https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", PostMediaType.VIDEO)
+//    )
+//
+//    VKUSocialNetworkingTheme {
+//        PostItem(
+//            username = "Nguyễn Văn A",
+//            date = "19 Tháng 4 lúc 18:00",
+//            imgAvatar = "",
+//            content = "Đây là nội dung bài viết có cả ảnh và video!",
+//            mediaItems = media,
+//            likeCount = 120,
+//            commentCount = 34,
+//            shareCount = 9
+//        )
+//    }
+//}
+

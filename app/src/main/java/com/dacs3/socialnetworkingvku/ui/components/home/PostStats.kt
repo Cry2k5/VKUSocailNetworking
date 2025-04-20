@@ -6,6 +6,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun PostStats(stats: String) {
-    Text(stats, fontSize = 12.sp, color = Color.Gray)
+fun PostStats(
+    likeCount: Int,
+    commentCount: Int,
+    shareCount: Int
+) {
+    val statsText = "$likeCount thích • $commentCount bình luận • $shareCount chia sẻ"
+    Text(
+        text = statsText,
+        fontSize = 12.sp,
+        color = Color.Gray
+    )
 }
