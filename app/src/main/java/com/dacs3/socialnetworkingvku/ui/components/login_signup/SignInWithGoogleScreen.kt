@@ -38,3 +38,11 @@ fun SignInWithGoogleScreen(){
         Text("Tiếp tục với Google")
     }
 }
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun SignInWithGooglePreview() {
+    VKUSocialNetworkingTheme {
+        SignInWithGoogleScreen()
+    }
+}

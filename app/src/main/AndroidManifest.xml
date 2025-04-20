@@ -16,7 +16,14 @@
             android:name=".ui.screen.LoginScreen"
             android:exported="false"
             android:label="@string/title_activity_login_screen"
-            android:theme="@style/Theme.VKUSocialNetworking" />
+            android:theme="@style/Theme.VKUSocialNetworking">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".MainActivity"
             android:exported="true"

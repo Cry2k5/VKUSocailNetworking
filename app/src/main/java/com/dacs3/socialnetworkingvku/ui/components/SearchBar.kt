@@ -47,8 +47,6 @@ fun SearchBar(content: String, hasStatusBarPadding: Boolean = false) {
     )
 }
 
-
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SearchBarPreview() {
