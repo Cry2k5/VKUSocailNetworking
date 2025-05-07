@@ -1,6 +1,7 @@
 // CustomTextField.kt
-package com.dacs3.socialnetworkingvku.ui.components.shared
+package com.dacs3.socialnetworkingvku.ui.components.login_signup
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -11,7 +12,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(
     value: String,
@@ -19,22 +19,37 @@ fun CustomTextField(
     label: String,
     modifier: Modifier = Modifier,
     trailingIcon: ImageVector? = null,
+    onTrailingIconClick: (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
-        modifier = modifier
-            .fillMaxWidth(),
+        label = { Text(label, color = MaterialTheme.colorScheme.onBackground) },
+        modifier = modifier.fillMaxWidth(),
         visualTransformation = visualTransformation,
         trailingIcon = {
             trailingIcon?.let {
-                Icon(imageVector = it, contentDescription = null)
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.clickable { onTrailingIconClick?.invoke() }
+                )
             }
         },
         keyboardOptions = keyboardOptions,
-        singleLine = true
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground
+        )
     )
 }
+

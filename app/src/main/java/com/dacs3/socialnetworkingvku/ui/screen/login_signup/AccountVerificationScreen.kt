@@ -1,5 +1,6 @@
 package com.dacs3.socialnetworkingvku.ui.screen.login_signup
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,20 +14,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.dacs3.socialnetworkingvku.R
-import com.dacs3.socialnetworkingvku.ui.components.shared.CustomTextField
+import com.dacs3.socialnetworkingvku.ui.components.login_signup.CustomTextField
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
+import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
 
 @Composable
-fun AccountVerificationScreen(onBackClick: () -> Unit = {}) {
+fun AccountVerificationScreen(viewModel: AuthViewModel, navController: NavController) {
     val scrollState = rememberScrollState()
-    var verificationCode by remember { mutableStateOf("") }
+    var otp by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    // Lấy giá trị từ ViewModel
+    val isLoading by viewModel.isLoading
+    val isSuccess by viewModel.isSuccess
+    val errorMessage by viewModel.errorMessage
+    val registerData = viewModel.pendingRegisterData
+
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            viewModel.resetStates()
+            navController.navigate("login")
+            {
+                popUpTo("verify_otp") { inclusive = true }
+            }
+            errorMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -36,40 +59,50 @@ fun AccountVerificationScreen(onBackClick: () -> Unit = {}) {
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Nút quay lại
         Icon(
             imageVector = Icons.Default.ArrowBack,
             contentDescription = "Quay lại",
             modifier = Modifier
                 .padding(top = 8.dp)
-                .clickable { onBackClick() }
+                .clickable {
+                    navController.popBackStack()
+                }
         )
 
-        // Tiêu đề
         Text(
             text = "Xác nhận tài khoản",
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp
         )
 
-        // Mô tả
         Text(
-            text = "Chúng tôi đã gửi mã đến thiết bị mà bạn đang dùng để đăng nhập.",
+            text = "Chúng tôi sẽ gửi mã xác nhận đến email bạn đã nhập.",
             fontSize = 14.sp,
             color = Color.Gray
         )
 
-        // Nhập mã xác thực (sử dụng CustomTextField)
+        // Nhập mã xác thực
         CustomTextField(
-            value = verificationCode,
-            onValueChange = { verificationCode = it },
-            label = "Nhập mã",
+            value = otp,
+            onValueChange = { otp = it },
+            label = "Nhập mã xác nhận",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
-        // Nút tiếp tục
         Button(
-            onClick = { /* TODO */ },
+            onClick = {
+                if(otp.isBlank()){
+                    Toast.makeText(context, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+                if (registerData != null) {
+                    registerData.dateOfBirth?.let {
+                        viewModel.verifyOtp(registerData.username,registerData.email,registerData.address,otp,registerData.password,
+                            it, registerData.phone,registerData.school)
+                    }
+                }
+
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -78,21 +111,19 @@ fun AccountVerificationScreen(onBackClick: () -> Unit = {}) {
             Text("Tiếp tục", color = Color.White)
         }
 
-        // Gửi lại mã
         Text(
             text = "Gửi lại mã",
             color = Color.Black,
             fontSize = 14.sp,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .clickable { /* TODO: Gửi lại mã */ }
+                .clickable {
+                }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
-
         Divider()
 
-        // Google login button
         OutlinedButton(
             onClick = { /* TODO */ },
             modifier = Modifier
@@ -111,13 +142,11 @@ fun AccountVerificationScreen(onBackClick: () -> Unit = {}) {
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        }
     }
+
+
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun AccountVerificationPreview() {
-    VKUSocialNetworkingTheme {
-        AccountVerificationScreen()
-    }
-}

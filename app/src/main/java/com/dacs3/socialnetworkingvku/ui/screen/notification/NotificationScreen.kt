@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.components.TitleSmallCustom
 import com.dacs3.socialnetworkingvku.ui.components.followers.PersonItem
-import com.dacs3.socialnetworkingvku.ui.components.shared.ButtonCustom
+import com.dacs3.socialnetworkingvku.ui.components.login_signup.ButtonCustom
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable

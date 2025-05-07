@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
-import com.dacs3.socialnetworkingvku.ui.components.shared.ButtonCustom
-import com.dacs3.socialnetworkingvku.ui.components.shared.CustomTextField
+import com.dacs3.socialnetworkingvku.ui.components.login_signup.ButtonCustom
+import com.dacs3.socialnetworkingvku.ui.components.login_signup.CustomTextField
 import com.dacs3.socialnetworkingvku.ui.screen.notification.NotificationScreen
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 

@@ -24,7 +24,7 @@ fun ChangePasswordScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(WindowInsets.systemBars.asPaddingValues()) // ✅ Đệm an toàn tránh che status bar và navigation bar
+            .padding(WindowInsets.systemBars.asPaddingValues())
             .padding(horizontal = 24.dp)
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(16.dp)
