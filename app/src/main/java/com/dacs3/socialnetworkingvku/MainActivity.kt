@@ -17,7 +17,6 @@ import com.dacs3.socialnetworkingvku.repository.AuthRepository
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.ApiService
 import com.dacs3.socialnetworkingvku.testApi.RetrofitClient
-import com.dacs3.socialnetworkingvku.ui.screen.home.HomeScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.LoginScreen
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
@@ -30,7 +29,7 @@ class MainActivity : ComponentActivity() {
         val tokenStore = TokenStoreManager(applicationContext)
         val retrofit = RetrofitClient.provideRetrofit(applicationContext, tokenStore)
         val repository = AuthRepository(retrofit.create(ApiService::class.java), tokenStore)
-        val viewModel = AuthViewModel(repository)
+        val viewModel = AuthViewModel(repository, tokenStore)
 
         setContent {
             VKUSocialNetworkingTheme {

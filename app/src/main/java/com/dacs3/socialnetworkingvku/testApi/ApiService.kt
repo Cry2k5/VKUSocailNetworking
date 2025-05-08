@@ -7,6 +7,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
 import retrofit2.http.POST
 import java.time.LocalDate
 
@@ -35,4 +36,15 @@ interface ApiService {
         @Field("phone") phone: String,
         @Field("school") school: String
     ): Response<ApiResponse>
+
+    @FormUrlEncoded
+    @POST("auth/logout")
+    suspend fun logout(
+        @Field("email") email: String
+    ): Response<ApiResponse>
+
+
+    @GET("me")
+    suspend fun getProfile(): Response<ApiResponse>
+
 }

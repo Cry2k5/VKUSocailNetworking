@@ -10,10 +10,12 @@ import androidx.lifecycle.viewModelScope
 import com.dacs3.socialnetworkingvku.data.User
 import com.dacs3.socialnetworkingvku.data.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.repository.AuthRepository
+import com.dacs3.socialnetworkingvku.security.TokenStoreManager
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
+class AuthViewModel(private val repository: AuthRepository, private val tokenStoreManager: TokenStoreManager) : ViewModel() {
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> get() = _isLoading
 
@@ -26,6 +28,9 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _pendingRegisterData = mutableStateOf<RegisterRequest?>(null)
     val pendingRegisterData: RegisterRequest? get() = _pendingRegisterData.value
 
+    val user: Flow<User> = tokenStoreManager.userFlow
+
+
     // Phương thức lưu trữ dữ liệu đăng ký
     fun cacheRegisterData(request: RegisterRequest) {
         Log.d("AuthViewModel", "Caching register data: $request")
@@ -33,6 +38,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     }
 
     fun login(email: String, password: String) {
+        Log.d("AuthViewModel", "Login with email: $email, password: $password")
         _isLoading.value = true
         _errorMessage.value = null
         _isSuccess.value = false
@@ -91,6 +97,22 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
                 _isSuccess.value = true
             }else {
                 _errorMessage.value = result.exceptionOrNull()?.message ?: "Xác thực thất bại"
+            }
+        }
+    }
+
+    fun logout(email: String){
+        _isLoading.value = true
+        _errorMessage.value = null
+        _isSuccess.value = false
+        viewModelScope.launch {
+            val result = repository.logout(email)
+
+            _isLoading.value = false
+            if(result.isSuccess){
+                _isSuccess.value = true
+            }else {
+                _errorMessage.value = result.exceptionOrNull()?.message ?: "Đăng xuất thất bại"
             }
         }
     }

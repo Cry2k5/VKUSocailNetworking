@@ -1,6 +1,7 @@
 package com.dacs3.socialnetworkingvku.repository
 
 import android.util.Log
+import com.dacs3.socialnetworkingvku.data.User
 import com.dacs3.socialnetworkingvku.data.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.data.response.ApiResponse
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
@@ -10,22 +11,34 @@ import java.time.LocalDate
 
 class AuthRepository(
     private val apiService: ApiService,
-    private val tokenStoreManager: TokenStoreManager
+    private val tokenStoreManager: TokenStoreManager,
 ) {
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
             val response = apiService.login(email, password)
+            Log.d("LoginScreen", "Raw response: $response")
             if (response.isSuccessful) {
-                Log.d("LoginScreen", "Email: $email, Mật khẩu: $password")
                 val body = response.body()
-                if (body != null) {
-                    tokenStoreManager.saveToken(body.accessToken,body.refreshToken)
-                    Result.success(Unit)
+                Log.d("LoginScreen", "Response body: $body")
+
+                if (body != null && body.user != null) {
+                    val user = User(
+                        id = body.user.id,
+                        email = body.user.email,
+                        name = body.user.name,
+                        avatar = body.user.avatar
+                    )
+                    Log.d("LoginScreen", "User: $user")
+                    tokenStoreManager.saveUser(user)
+                    tokenStoreManager.saveToken(body.accessToken, body.refreshToken)
+                    return Result.success(Unit)
                 } else {
-                    Result.failure(Exception("Empty response body"))
+                    Log.e("LoginScreen", "Missing body or user")
+                    return Result.failure(Exception("Missing user info"))
                 }
             } else {
-                Result.failure(Exception("Login failed: ${response.code()}"))
+                Log.e("LoginScreen", "Login failed: ${response.code()}")
+                return Result.failure(Exception("Login failed: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -99,6 +112,28 @@ class AuthRepository(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun logout(email: String): Result<ApiResponse> {
+        return try {
+            val response = apiService.logout(email)
+            Log.d("AuthRepository", "Logout response: ${response.body()}")
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse != null) {
+
+                    tokenStoreManager.clearAll()
+                    Result.success(apiResponse)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                Result.failure(Exception("Logout failed: ${response.code()}"))
+            }
+            } catch (e: Exception) {
+            Result.failure(e)
+        }
+
     }
 
 }

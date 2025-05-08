@@ -1,8 +1,8 @@
 package com.dacs3.socialnetworkingvku.data
 
 data class User(
-    val id: String,
-    val username: String,
-    val avatar: String,
-
+    val id: Long,
+    val email: String,
+    val name: String,
+    val avatar:String?
 )

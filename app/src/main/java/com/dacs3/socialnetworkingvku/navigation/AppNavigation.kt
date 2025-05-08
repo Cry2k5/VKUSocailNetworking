@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.dacs3.socialnetworkingvku.data.User
 import com.dacs3.socialnetworkingvku.ui.screen.home.HomeScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.AccountVerificationScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.LoginScreen
@@ -22,7 +23,11 @@ fun AppNavigation(viewModel: AuthViewModel) {
 
         composable("verify_otp") { AccountVerificationScreen(navController = navController, viewModel = viewModel) }
 
-        composable("home") { HomeScreen() }
+        composable("home") { HomeScreen(viewModel = viewModel, controller = navController)}
+
+//        composable("create_post"){
+//            CreatePostScreen()
+//        }
 
     }
 }

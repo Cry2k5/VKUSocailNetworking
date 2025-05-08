@@ -42,8 +42,8 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Hiển thị Toast khi có sự thay đổi trạng thái
     LaunchedEffect(isSuccess) {
+        Log.d("LoginScreen", "isSuccess: $isSuccess")
         if (isSuccess) {
             viewModel.resetStates()
             navController.navigate("home") {

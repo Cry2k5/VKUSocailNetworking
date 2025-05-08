@@ -60,25 +60,5 @@ fun PostItem(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PostItemPreview() {
-//    val media = listOf(
-//        MediaItem("https://placekitten.com/800/400", PostMediaType.IMAGE),
-//        MediaItem("https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", PostMediaType.VIDEO)
-//    )
-//
-//    VKUSocialNetworkingTheme {
-//        PostItem(
-//            username = "Nguyễn Văn A",
-//            date = "19 Tháng 4 lúc 18:00",
-//            imgAvatar = "",
-//            content = "Đây là nội dung bài viết có cả ảnh và video!",
-//            mediaItems = media,
-//            likeCount = 120,
-//            commentCount = 34,
-//            shareCount = 9
-//        )
-//    }
-//}
+
 
