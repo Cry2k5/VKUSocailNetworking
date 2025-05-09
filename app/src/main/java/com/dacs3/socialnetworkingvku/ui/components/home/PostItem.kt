@@ -25,31 +25,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dacs3.socialnetworkingvku.R
+import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
+import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 
 @Composable
 fun PostItem(
-    username: String,
-    date: Long,
-    imgAvatar: String,
-    content: String,
-    imgContent: String,
-    likeCount: Int,
-    commentCount: Int,
-    shareCount: Int,
+    post: PostEntity,
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
     onShareClick: () -> Unit = {}
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        PostHeader(username = username, date = date, imgAvatar = imgAvatar)
+        PostHeader(username = post.userName, date = post.createdAt, imgAvatar = post.userAvatar)
         Spacer(modifier = Modifier.height(8.dp))
-        PostContent(content = content, imgContent = imgContent)
+        PostContent(content = post.content, imgContent = post.image)
         Spacer(modifier = Modifier.height(8.dp))
         PostStats(
-            likeCount = likeCount,
-            commentCount = commentCount,
-            shareCount = shareCount
+            likeCount = post.likeCount,
+            commentCount = post.commentCount,
+            shareCount = 0
         )
         Spacer(modifier = Modifier.height(4.dp))
         PostActions(

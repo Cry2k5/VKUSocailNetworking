@@ -1,4 +1,4 @@
-package com.dacs3.socialnetworkingvku.data.response
+package com.dacs3.socialnetworkingvku.data.auth.response
 
 import com.google.gson.annotations.SerializedName
 

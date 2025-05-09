@@ -31,11 +31,14 @@ import com.dacs3.socialnetworkingvku.R
 import com.dacs3.socialnetworkingvku.ui.components.Chat_CommentCustom
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun PostHeader(username: String, date: Long, imgAvatar:String) {
+fun PostHeader(username: String, date: String, imgAvatar:String?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = rememberAsyncImagePainter(imgAvatar)?:  painterResource(id = R.drawable.demo_image_background) ,
@@ -47,13 +50,18 @@ fun PostHeader(username: String, date: Long, imgAvatar:String) {
         Spacer(modifier = Modifier.width(8.dp))
         Column {
             Text(username, fontWeight = FontWeight.Bold)
-            Text(formatTimestamp(date), fontSize = 12.sp, color = Color.Gray)
+            Text(formatDateTime(date), fontSize = 12.sp, color = Color.Gray)
         }
     }
 
 }
-private fun formatTimestamp(timestamp: Long): String {
-    val date = Date(timestamp * 1000) // Multiply by 1000 if it's in seconds
-    val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-    return sdf.format(date)
+fun formatDateTime(isoString: String): String {
+    return try {
+        val formatterInput = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+        val localDateTime = java.time.LocalDateTime.parse(isoString, formatterInput)
+        val formatterOutput = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
+        formatterOutput.format(localDateTime)
+    } catch (e: Exception) {
+        "Không xác định"
+    }
 }

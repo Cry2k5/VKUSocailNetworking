@@ -1,6 +1,13 @@
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,16 +21,45 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
-    onPostSubmit: (String, Uri?) -> Unit,
-    onCancel: () -> Unit
+    viewModel: PostViewModel,
+    controller: NavController,
+    context: Context
 ) {
     var postContent by remember { mutableStateOf(TextFieldValue("")) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var uploadedImageUrl by remember { mutableStateOf<String?>(null) }
+    val isLoading by viewModel.isLoading
+    val isSuccess by viewModel.isSuccess
+    val errorMessage by viewModel.errorMessage
+    // Register the launcher for picking an image
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            selectedImageUri = uri
+        }
+    )
+
+    LaunchedEffect(isSuccess) {
+        Log.d("LoginScreen", "isSuccess: $isSuccess")
+        if (isSuccess) {
+            controller.navigate("home") {
+                popUpTo("create_post") { inclusive = true }
+            }
+            errorMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -64,11 +100,11 @@ fun CreatePostScreen(
             )
         }
 
-        // Nút chọn ảnh (giả lập chọn ảnh cho preview/demo)
+        // Nút chọn ảnh
         TextButton(
             onClick = {
-                // Giả lập URI ảnh — trong app thực, bạn sẽ gọi image picker
-                selectedImageUri = Uri.parse("https://via.placeholder.com/600x400.png?text=Ảnh+chọn")
+                // Mở màn hình chọn ảnh
+                pickImageLauncher.launch("image/*")
             }
         ) {
             Icon(Icons.Default.Image, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -83,14 +119,28 @@ fun CreatePostScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onCancel) {
+            TextButton(
+                onClick = { controller.popBackStack() } // Quay lại màn hình trước
+            ) {
                 Text("Hủy")
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    if (postContent.text.isNotBlank()) {
-                        onPostSubmit(postContent.text.trim(), selectedImageUri)
+                    if (selectedImageUri != null) {
+                        // Upload ảnh lên Cloudinary
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val imageUrl = viewModel.uploadImageToCloudinary(selectedImageUri!!, context)
+                            if (imageUrl != null) {
+                                // Lưu URL ảnh từ Cloudinary
+                                uploadedImageUrl = imageUrl
+                                // Tạo bài viết với URL ảnh đã upload
+                                viewModel.createPost(postContent.text, uploadedImageUrl)
+                            }
+                        }
+                    } else {
+                        // Nếu không có ảnh, chỉ đăng bài với nội dung
+                        viewModel.createPost(postContent.text, null)
                     }
                 },
                 enabled = postContent.text.isNotBlank()
@@ -99,12 +149,4 @@ fun CreatePostScreen(
             }
         }
     }
-}
-@Preview(showBackground = true)
-@Composable
-fun PreviewCreatePostScreen() {
-    CreatePostScreen(
-        onPostSubmit = { content, imageUri -> println("Nội dung: $content, Ảnh: $imageUri") },
-        onCancel = { println("Hủy bài đăng") }
-    )
 }

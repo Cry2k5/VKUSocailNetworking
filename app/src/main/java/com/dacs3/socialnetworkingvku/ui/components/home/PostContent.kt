@@ -18,20 +18,23 @@ import coil.compose.AsyncImage
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable
-fun PostContent(content: String, imgContent: String) {
+fun PostContent(content: String, imgContent: String?) {
     Column {
         Text(text = content)
         Spacer(modifier = Modifier.height(8.dp))
 
-        AsyncImage(
-            model = imgContent,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+        // Chỉ hiển thị ảnh nếu imgContent không null hoặc rỗng
+        if (!imgContent.isNullOrBlank()) {
+            AsyncImage(
+                model = imgContent,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
     }
 }

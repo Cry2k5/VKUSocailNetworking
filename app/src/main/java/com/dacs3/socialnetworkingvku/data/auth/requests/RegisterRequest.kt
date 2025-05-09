@@ -1,4 +1,4 @@
-package com.dacs3.socialnetworkingvku.data.requests
+package com.dacs3.socialnetworkingvku.data.auth.requests
 
 import java.time.LocalDate
 

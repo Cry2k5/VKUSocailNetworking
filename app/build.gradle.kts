@@ -101,5 +101,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.navigation:navigation-compose:2.7.5")
 
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.28.0")
+    implementation("com.cloudinary:cloudinary-android:3.0.2")
 
 }

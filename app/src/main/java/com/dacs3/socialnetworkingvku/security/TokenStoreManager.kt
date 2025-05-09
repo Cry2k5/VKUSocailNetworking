@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
-import com.dacs3.socialnetworkingvku.data.User
+import com.dacs3.socialnetworkingvku.data.user.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

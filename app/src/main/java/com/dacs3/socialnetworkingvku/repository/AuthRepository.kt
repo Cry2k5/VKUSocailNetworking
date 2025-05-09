@@ -1,13 +1,11 @@
 package com.dacs3.socialnetworkingvku.repository
 
 import android.util.Log
-import com.dacs3.socialnetworkingvku.data.User
-import com.dacs3.socialnetworkingvku.data.requests.RegisterRequest
-import com.dacs3.socialnetworkingvku.data.response.ApiResponse
+import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
+import com.dacs3.socialnetworkingvku.data.user.User
+import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.ApiService
-import retrofit2.http.Field
-import java.time.LocalDate
 
 class AuthRepository(
     private val apiService: ApiService,
@@ -16,12 +14,12 @@ class AuthRepository(
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
             val response = apiService.login(email, password)
-            Log.d("LoginScreen", "Raw response: $response")
+            Log.d("AuthRepository", "Raw response: $response")
             if (response.isSuccessful) {
                 val body = response.body()
-                Log.d("LoginScreen", "Response body: $body")
+                Log.d("AuthRepository", "Response body: $body")
 
-                if (body != null && body.user != null) {
+                if (body?.user != null) {
                     val user = User(
                         id = body.user.id,
                         email = body.user.email,

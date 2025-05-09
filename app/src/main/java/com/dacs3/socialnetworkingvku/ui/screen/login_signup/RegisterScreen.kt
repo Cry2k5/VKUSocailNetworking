@@ -18,16 +18,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.dacs3.socialnetworkingvku.data.requests.RegisterRequest
+import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.ui.components.login_signup.SignInWithGoogleScreen
 import com.dacs3.socialnetworkingvku.ui.components.login_signup.ButtonCustom
 import com.dacs3.socialnetworkingvku.ui.components.login_signup.CustomTextField
-import com.dacs3.socialnetworkingvku.ui.components.login_signup.DatePickerTextField
-import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -53,7 +50,7 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
             viewModel.resetStates()
-            Log.d("Register", "Navigating to verify_otp screen")
+            Log.d("RegisterScreen", "Navigating to verify_otp screen")
             navController.navigate("verify_otp") {
                 popUpTo("register") { inclusive = true }
             }

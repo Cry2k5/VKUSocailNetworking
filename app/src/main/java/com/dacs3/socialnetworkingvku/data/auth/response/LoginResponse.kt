@@ -1,6 +1,6 @@
-package com.dacs3.socialnetworkingvku.data.response
+package com.dacs3.socialnetworkingvku.data.auth.response
 
-import com.dacs3.socialnetworkingvku.data.User
+import com.dacs3.socialnetworkingvku.data.user.User
 import com.google.gson.annotations.SerializedName
 
 data class LoginResponse (
@@ -10,5 +10,5 @@ data class LoginResponse (
     val refreshToken: String,
 
     @SerializedName("user")
-    val user:User
+    val user: User
     )

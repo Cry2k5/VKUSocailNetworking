@@ -1,8 +1,10 @@
 package com.dacs3.socialnetworkingvku.ui.screen.home
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
@@ -11,32 +13,32 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.dacs3.socialnetworkingvku.R
-import com.dacs3.socialnetworkingvku.data.User
+import com.dacs3.socialnetworkingvku.data.user.User
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.components.SearchBar
 import com.dacs3.socialnetworkingvku.ui.components.home.PostItem
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: AuthViewModel, controller: NavController) {
+fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewModel: PostViewModel) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
     val user by viewModel.user.collectAsState(initial = User(0, "", "", ""))
-    val isLoading by viewModel.isLoading
     val isSuccess by viewModel.isSuccess
-
+    val postList by postViewModel.postList.collectAsState()
     val context = LocalContext.current
     val avatarRequest = remember(user.avatar) {
         ImageRequest.Builder(context)
@@ -44,9 +46,28 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController) {
             .crossfade(true)
             .build()
     }
+    val isRefreshing by postViewModel.isDataLoaded
+    LaunchedEffect(isRefreshing) {
+        if (isRefreshing) {
+            // Làm mới chỉ một lần
+            Log.d("HomeScreen", "Refreshing posts...")
+            postViewModel.getAllPosts()
+
+            // Thêm một khoảng delay trước khi tải bài viết từ Room
+            delay(500)
+
+            // Lấy dữ liệu từ Room sau khi yêu cầu mạng hoàn tất
+            postViewModel.getAllPostsFromRoomData()
+
+            // Sau khi làm mới xong, đặt lại trạng thái isRefreshing thành false
+            postViewModel.resetState()
+        }
+    }
 
 
-    // Khi logout thành công, chuyển hướng về login
+
+
+    // Khi logout thành công, điều hướng về login
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
             viewModel.resetStates()
@@ -124,8 +145,7 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController) {
                     Text("Đăng xuất")
                 }
             }
-        }
-        ,
+        },
         gesturesEnabled = true,
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
     ) {
@@ -138,7 +158,6 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController) {
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Avatar header
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -159,9 +178,15 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController) {
 
                     Text(
                         text = "Bạn đang nghĩ gì?",
+                        modifier = Modifier.clickable {
+                            controller.navigate("create_post"){
+                                popUpTo("home") { inclusive = false }
+                            }
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -170,19 +195,12 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController) {
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    item {
+                    items(postList) { post ->
                         PostItem(
-                            username = "Nguyễn Văn A",
-                            date = 0L,
-                            imgAvatar = "",
-                            content = "Đây là nội dung bài viết có cả ảnh và video!",
-                            likeCount = 120,
-                            commentCount = 34,
-                            shareCount = 9,
-                            imgContent = "",
-                            onLikeClick = {},
-                            onCommentClick = {},
-                            onShareClick = {}
+                            post = post,
+                            onLikeClick = { },
+                            onCommentClick = { },
+                            onShareClick = { }
                         )
                     }
                 }

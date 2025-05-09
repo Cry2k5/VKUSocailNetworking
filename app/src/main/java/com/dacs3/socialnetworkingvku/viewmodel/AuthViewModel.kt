@@ -3,17 +3,14 @@ package com.dacs3.socialnetworkingvku.viewmodel
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dacs3.socialnetworkingvku.data.User
-import com.dacs3.socialnetworkingvku.data.requests.RegisterRequest
+import com.dacs3.socialnetworkingvku.data.user.User
+import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.repository.AuthRepository
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 class AuthViewModel(private val repository: AuthRepository, private val tokenStoreManager: TokenStoreManager) : ViewModel() {
     private val _isLoading = mutableStateOf(false)
