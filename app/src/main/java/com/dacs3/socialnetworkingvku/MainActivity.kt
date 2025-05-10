@@ -8,13 +8,16 @@ import com.cloudinary.android.MediaManager
 import com.dacs3.socialnetworkingvku.navigation.AppNavigation
 import com.dacs3.socialnetworkingvku.repository.AuthRepository
 import com.dacs3.socialnetworkingvku.repository.PostRepository
+import com.dacs3.socialnetworkingvku.repository.UserRepository
 import com.dacs3.socialnetworkingvku.roomdata.AppDatabase
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
-import com.dacs3.socialnetworkingvku.testApi.ApiService
+import com.dacs3.socialnetworkingvku.testApi.AuthApiService
 import com.dacs3.socialnetworkingvku.testApi.RetrofitClient
+import com.dacs3.socialnetworkingvku.testApi.UserApiService
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,15 +27,17 @@ class MainActivity : ComponentActivity() {
         val tokenStore = TokenStoreManager(applicationContext)
 
         val retrofit = RetrofitClient.provideRetrofit(applicationContext, tokenStore)
-        val apiService = retrofit.create(ApiService::class.java)
-
-        val authRepository = AuthRepository(apiService, tokenStore)
+        val authApiService = retrofit.create(AuthApiService::class.java)
+        val userApiService = retrofit.create(UserApiService::class.java)
+        val authRepository = AuthRepository(authApiService, tokenStore)
 
         val postDao = AppDatabase.getInstance(applicationContext).postDao()
-        val postRepository = PostRepository(apiService, postDao, tokenStore)
+        val postRepository = PostRepository(authApiService, postDao, tokenStore)
 
         val authViewModel = AuthViewModel(authRepository, tokenStore)
         val postViewModel = PostViewModel(postRepository)
+        val userRepository = UserRepository(userApiService, tokenStore)
+        val userViewModel = UserViewModel(userRepository)
         val context = this
         val config = mapOf(
             "cloud_name" to "de19voxxj",
@@ -42,7 +47,7 @@ class MainActivity : ComponentActivity() {
         MediaManager.init(this, config)
         setContent {
             VKUSocialNetworkingTheme {
-                AppNavigation(viewModel = authViewModel, postViewModel = postViewModel, context = context)
+                AppNavigation(viewModel = authViewModel, postViewModel = postViewModel, userViewModel = userViewModel,context = context)
             }
         }
     }

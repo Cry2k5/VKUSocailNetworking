@@ -18,51 +18,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable
-fun NavigationBottom() {
+fun NavigationBottom(navController: NavController) {
     NavigationBar(
         modifier = Modifier
             .navigationBarsPadding()
-            .heightIn(min = 56.dp, max = 72.dp) // hoặc để mặc định cũng được
-    ){
+            .heightIn(min = 56.dp, max = 72.dp)
+    ) {
         NavigationBarItem(
-            selected = true,
-            onClick = { },
+            selected = false,
+            onClick = { navController.navigate("home") },
             icon = { Icon(Icons.Default.Home, contentDescription = "Trang chủ") },
             label = { Text("Trang chủ") }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { },
+            onClick = { navController.navigate("followers") },
             icon = { Icon(Icons.Default.Person, contentDescription = "Theo dõi") },
             label = { Text("Theo dõi") }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { },
+            onClick = { navController.navigate("chat") },
             icon = { Icon(Icons.Default.Chat, contentDescription = "Tin nhắn") },
             label = { Text("Tin nhắn") }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { },
+            onClick = { navController.navigate("notification") },
             icon = { Icon(Icons.Default.Notifications, contentDescription = "Thông báo") },
             label = { Text("Thông báo") }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { },
+            onClick = { navController.navigate("profile") },
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Cá nhân") },
             label = { Text("Cá nhân") }
         )
-    }
-}
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun NavigationBottomPreview() {
-    VKUSocialNetworkingTheme {
-        NavigationBottom()
     }
 }

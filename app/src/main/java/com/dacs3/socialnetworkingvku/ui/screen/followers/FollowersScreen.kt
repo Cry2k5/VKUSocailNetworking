@@ -24,13 +24,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.components.TopAppBarHeader
 import com.dacs3.socialnetworkingvku.ui.components.*
 import com.dacs3.socialnetworkingvku.ui.components.followers.PersonItem
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 @Composable
-fun FollowersScreen() {
+fun FollowersScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBarHeader(
@@ -42,7 +43,7 @@ fun FollowersScreen() {
                 })
         },
         bottomBar = {
-            NavigationBottom()
+            NavigationBottom(navController)
         }
     ) { innerPadding ->
         Column(
@@ -91,10 +92,4 @@ fun FollowersScreen() {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun FollowersScreenPreview() {
-    VKUSocialNetworkingTheme {
-        FollowersScreen()
-    }
-}
+

@@ -1,6 +1,7 @@
 package com.dacs3.socialnetworkingvku.ui.components.home
 
 import android.net.Uri
+import android.util.Log
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.compose.foundation.Image
@@ -25,6 +26,7 @@ fun PostContent(content: String, imgContent: String?) {
 
         // Chỉ hiển thị ảnh nếu imgContent không null hoặc rỗng
         if (!imgContent.isNullOrBlank()) {
+            Log.d("PostContent",imgContent)
             AsyncImage(
                 model = imgContent,
                 contentDescription = null,

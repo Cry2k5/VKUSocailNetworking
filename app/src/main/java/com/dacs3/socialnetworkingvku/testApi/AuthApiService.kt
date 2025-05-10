@@ -4,22 +4,19 @@ import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.data.auth.response.LoginResponse
 import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
 import com.dacs3.socialnetworkingvku.data.post.requests.PostRequest
-import com.dacs3.socialnetworkingvku.data.post.response.CloudinaryResponse
 import com.dacs3.socialnetworkingvku.data.post.response.Post
 import com.dacs3.socialnetworkingvku.data.post.response.PostWithStatsResponse
-import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
-import retrofit2.http.Headers
-import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.Part
+import retrofit2.http.Query
 
-interface ApiService {
+interface AuthApiService {
 
     @FormUrlEncoded
     @POST("auth/login")
@@ -45,11 +42,24 @@ interface ApiService {
         @Field("school") school: String
     ): Response<ApiResponse>
 
+    @POST("auth/forgotPassword")
+    suspend fun forgotPassword(
+        @Query("email") email: String
+    ): Response<ApiResponse>
+
+    @PATCH("auth/verifyOtpPassword")
+    suspend fun verifyOtpPassword(
+        @Query("email") email: String,
+        @Query("otp") otp: String
+    ): Response<Any>
+
     @FormUrlEncoded
     @POST("auth/logout")
     suspend fun logout(
         @Field("email") email: String
     ): Response<ApiResponse>
+
+
 
 
     @GET("post/all")
@@ -61,12 +71,6 @@ interface ApiService {
         @Body postRequest: PostRequest
     ): Response<Post>
 
-    @Multipart
-    @POST("https://api.cloudinary.com/v1_1/SocialNetwork/image/upload")
-    suspend fun uploadImage(
-        @Part image: MultipartBody.Part,
-        @Part("upload_preset") uploadPreset: String
-    ): Response<CloudinaryResponse>
 //    wyU6rm-15kXjqEn4ElwG6zwhLaE: secrey key
 //    313163933254635: api key
 }

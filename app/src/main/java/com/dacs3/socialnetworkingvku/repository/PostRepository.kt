@@ -3,6 +3,9 @@ package com.dacs3.socialnetworkingvku.repository
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 import com.dacs3.socialnetworkingvku.data.post.requests.PostRequest
 import com.dacs3.socialnetworkingvku.data.post.response.Post
 import com.dacs3.socialnetworkingvku.data.post.response.PostWithStatsResponse
@@ -10,23 +13,18 @@ import com.dacs3.socialnetworkingvku.roomdata.post.PostDao
 import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 import com.dacs3.socialnetworkingvku.roomdata.post.toEntity
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
-import com.dacs3.socialnetworkingvku.testApi.ApiService
+import com.dacs3.socialnetworkingvku.testApi.AuthApiService
 import kotlinx.coroutines.flow.first
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import retrofit2.Response
-import java.io.File
-import java.io.FileOutputStream
+import java.io.ByteArrayOutputStream
 
 class PostRepository(
-    private val apiService: ApiService,
+    private val authApiService: AuthApiService,
     private val postDao: PostDao,
     private val tokenStoreManager: TokenStoreManager
     ) {
     suspend fun getAllPostsWithStats(): Result<List<PostWithStatsResponse>> {
         return try {
-            val response = apiService.getAllPostsForHome()
+            val response = authApiService.getAllPostsForHome()
             if (response.isSuccessful) {
                 Log.d("PostRepository", "Response body: ${response.body()}")
                 val posts = response.body()
@@ -58,23 +56,86 @@ class PostRepository(
             val tokenDataStore = tokenStoreManager.accessTokenFlow.first()
             val token = "Bearer $tokenDataStore"
 
-            val response = apiService.createPost(token, postRequest)
+            // Gửi yêu cầu tạo bài viết
+            val response = authApiService.createPost(token, postRequest)
+
+            // Kiểm tra phản hồi có thành công không
             if (response.isSuccessful) {
                 val post = response.body()
+                Log.d("PostRepository", "Response body: $post")  // Log dữ liệu trả về
+
                 if (post != null) {
                     Result.success(post)
                 } else {
+                    // Log nếu body trả về là null
+                    Log.e("PostRepository", "Phản hồi thành công nhưng không có nội dung.")
                     Result.failure(Exception("Phản hồi thành công nhưng không có nội dung."))
                 }
             } else {
+                // Log khi phản hồi không thành công
+                Log.e("PostRepository", "Tạo bài viết thất bại: ${response.code()} ${response.message()}")
                 Result.failure(Exception("Tạo bài viết thất bại: ${response.code()} ${response.message()}"))
             }
         } catch (e: Exception) {
+            // Log khi có lỗi trong quá trình gọi API
+            Log.e("PostRepository", "Exception occurred: ${e.message}")
             Result.failure(e)
         }
     }
 
 
+    suspend fun uploadImageToCloudinary(imageUri: Uri, context: Context): String? =
+        kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+            try {
+                // Chuyển Uri thành ByteArray
+                val imageBytes = uriToByteArray(context, imageUri)
+                if (imageBytes == null) {
+                    continuation.resume(null, null)
+                    return@suspendCancellableCoroutine
+                }
+
+                MediaManager.get().upload(imageBytes)
+                    .option("resource_type", "image")
+                    .option("upload_preset", "ml_default")
+                    .callback(object : UploadCallback {
+                        override fun onStart(requestId: String?) {}
+
+                        override fun onProgress(requestId: String?, bytes: Long, totalBytes: Long) {}
+
+                        override fun onSuccess(requestId: String?, resultData: Map<*, *>?) {
+                            val url = resultData?.get("secure_url") as? String
+                            continuation.resume(url, null)
+                        }
+
+                        override fun onError(requestId: String?, error: ErrorInfo?) {
+                            Log.e("CloudinaryUpload", "Error uploading image: ${error?.description}")
+                            continuation.resume(null, null)
+                        }
+
+                        override fun onReschedule(requestId: String?, error: ErrorInfo?) {
+                            Log.w("CloudinaryUpload", "Upload rescheduled: ${error?.description}")
+                            continuation.resume(null, null)
+                        }
+                    })
+                    .dispatch()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                continuation.resume(null, null)
+            }
+        }
+
+    fun uriToByteArray(context: Context, uri: Uri): ByteArray? {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                inputStream.copyTo(byteArrayOutputStream)
+                byteArrayOutputStream.toByteArray()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 
     suspend fun getAllPostsFromRoom(): List<PostEntity> {
         return postDao.getAllPosts()

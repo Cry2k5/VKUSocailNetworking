@@ -46,25 +46,28 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
             .crossfade(true)
             .build()
     }
+
+    LaunchedEffect (Unit)
+    {
+        postViewModel.getAllPosts()
+        delay(500)
+        postViewModel.getAllPostsFromRoomData()
+        postViewModel.resetState()
+    }
+
     val isRefreshing by postViewModel.isDataLoaded
     LaunchedEffect(isRefreshing) {
         if (isRefreshing) {
-            // Làm mới chỉ một lần
             Log.d("HomeScreen", "Refreshing posts...")
             postViewModel.getAllPosts()
 
-            // Thêm một khoảng delay trước khi tải bài viết từ Room
             delay(500)
 
-            // Lấy dữ liệu từ Room sau khi yêu cầu mạng hoàn tất
             postViewModel.getAllPostsFromRoomData()
 
-            // Sau khi làm mới xong, đặt lại trạng thái isRefreshing thành false
             postViewModel.resetState()
         }
     }
-
-
 
 
     // Khi logout thành công, điều hướng về login
@@ -151,7 +154,7 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
     ) {
         Scaffold(
             topBar = { SearchBar(content = "Tìm kiếm...") },
-            bottomBar = { NavigationBottom() }
+            bottomBar = { NavigationBottom(navController = controller) }
         ) { innerPadding ->
             Column(
                 modifier = Modifier

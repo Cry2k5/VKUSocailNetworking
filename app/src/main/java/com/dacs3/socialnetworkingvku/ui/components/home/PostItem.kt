@@ -38,7 +38,7 @@ fun PostItem(
     onShareClick: () -> Unit = {}
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        PostHeader(username = post.userName, date = post.createdAt, imgAvatar = post.userAvatar)
+        PostHeader(username = post.userEmail, date = post.createdAt, imgAvatar = post.userAvatar)
         Spacer(modifier = Modifier.height(8.dp))
         PostContent(content = post.content, imgContent = post.image)
         Spacer(modifier = Modifier.height(8.dp))

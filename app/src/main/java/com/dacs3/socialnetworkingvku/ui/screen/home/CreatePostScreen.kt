@@ -24,32 +24,55 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.UploadState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CreatePostScreen(
-    viewModel: PostViewModel,
+    postViewModel: PostViewModel,
     controller: NavController,
     context: Context
 ) {
+
+
     var postContent by remember { mutableStateOf(TextFieldValue("")) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    var uploadedImageUrl by remember { mutableStateOf<String?>(null) }
-    val isLoading by viewModel.isLoading
-    val isSuccess by viewModel.isSuccess
-    val errorMessage by viewModel.errorMessage
-    // Register the launcher for picking an image
+    val uploadState by postViewModel.uploadState.collectAsState()
+    val uploadedImageUrl by postViewModel.uploadedImageUrl
+    val isLoading by postViewModel.isLoading
+    val isSuccess by postViewModel.isSuccess
+    val errorMessage by postViewModel.errorMessage
+
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            selectedImageUri = uri
-        }
+        onResult = { uri -> selectedImageUri = uri }
     )
+    // Hiển thị thông báo trạng thái upload
+    LaunchedEffect(uploadState) {
+        when (uploadState) {
+            UploadState.Loading -> {
 
+            }
+            UploadState.Success -> {
+
+                Toast.makeText(context, "Upload thành công!", Toast.LENGTH_SHORT).show()
+                uploadedImageUrl?.let {
+                    postViewModel.createPost(postContent.text, it)
+                }
+                postViewModel.resetState()
+            }
+            UploadState.Error -> {
+                Toast.makeText(context, "Upload thất bại!", Toast.LENGTH_SHORT).show()
+            }
+            else -> Unit
+        }
+    }
+
+    // Khi post thành công thì chuyển trang
     LaunchedEffect(isSuccess) {
-        Log.d("LoginScreen", "isSuccess: $isSuccess")
         if (isSuccess) {
             controller.navigate("home") {
                 popUpTo("create_post") { inclusive = true }
@@ -57,7 +80,6 @@ fun CreatePostScreen(
             errorMessage?.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
-
         }
     }
 
@@ -66,11 +88,7 @@ fun CreatePostScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Tạo bài viết",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
+        Text("Tạo bài viết", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
@@ -86,7 +104,6 @@ fun CreatePostScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Ảnh được chọn
         selectedImageUri?.let { uri ->
             Image(
                 painter = rememberAsyncImagePainter(uri),
@@ -100,12 +117,8 @@ fun CreatePostScreen(
             )
         }
 
-        // Nút chọn ảnh
         TextButton(
-            onClick = {
-                // Mở màn hình chọn ảnh
-                pickImageLauncher.launch("image/*")
-            }
+            onClick = { pickImageLauncher.launch("image/*") }
         ) {
             Icon(Icons.Default.Image, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(8.dp))
@@ -114,37 +127,37 @@ fun CreatePostScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Nút hành động
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(
-                onClick = { controller.popBackStack() } // Quay lại màn hình trước
-            ) {
+            TextButton(onClick = {
+                postViewModel.resetState()
+                controller.popBackStack() }) {
                 Text("Hủy")
             }
+
             Spacer(modifier = Modifier.width(8.dp))
+
             Button(
                 onClick = {
                     if (selectedImageUri != null) {
-                        // Upload ảnh lên Cloudinary
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val imageUrl = viewModel.uploadImageToCloudinary(selectedImageUri!!, context)
-                            if (imageUrl != null) {
-                                // Lưu URL ảnh từ Cloudinary
-                                uploadedImageUrl = imageUrl
-                                // Tạo bài viết với URL ảnh đã upload
-                                viewModel.createPost(postContent.text, uploadedImageUrl)
-                            }
-                        }
+                        postViewModel.uploadImage(selectedImageUri!!, context)
                     } else {
-                        // Nếu không có ảnh, chỉ đăng bài với nội dung
-                        viewModel.createPost(postContent.text, null)
+                        postViewModel.createPost(postContent.text, null)
                     }
                 },
                 enabled = postContent.text.isNotBlank()
             ) {
+                if (uploadState == UploadState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .padding(end = 8.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                }
                 Text("Đăng")
             }
         }

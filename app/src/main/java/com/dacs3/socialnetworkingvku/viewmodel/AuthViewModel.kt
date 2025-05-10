@@ -27,6 +27,18 @@ class AuthViewModel(private val repository: AuthRepository, private val tokenSto
 
     val user: Flow<User> = tokenStoreManager.userFlow
 
+    // Thêm riêng biệt các trạng thái
+    private val _isForgotSuccess = mutableStateOf(false)
+    val isForgotSuccess: State<Boolean> = _isForgotSuccess
+
+    private val _forgotErrorMessage = mutableStateOf<String?>(null)
+    val forgotErrorMessage: State<String?> = _forgotErrorMessage
+
+    private val _isOtpVerified = mutableStateOf(false)
+    val isOtpVerified: State<Boolean> = _isOtpVerified
+
+    private val _otpErrorMessage = mutableStateOf<String?>(null)
+    val otpErrorMessage: State<String?> = _otpErrorMessage
 
     // Phương thức lưu trữ dữ liệu đăng ký
     fun cacheRegisterData(request: RegisterRequest) {
@@ -94,6 +106,42 @@ class AuthViewModel(private val repository: AuthRepository, private val tokenSto
                 _isSuccess.value = true
             }else {
                 _errorMessage.value = result.exceptionOrNull()?.message ?: "Xác thực thất bại"
+            }
+        }
+    }
+    fun forgotPassword(email: String) {
+        _isLoading.value = true
+        _forgotErrorMessage.value = null
+        _isForgotSuccess.value = false
+
+        viewModelScope.launch {
+            val result = repository.forgotPassword(email)
+            Log.d("AuthViewModel", "Forgot password result: $result")
+            _isLoading.value = false
+
+            if (result.isSuccess) {
+                _isForgotSuccess.value = true
+            } else {
+                _forgotErrorMessage.value = result.exceptionOrNull()?.message ?: "Quên mật khẩu thất bại"
+            }
+        }
+    }
+
+
+    fun verifyOtpPassword(email: String, otp: String) {
+        _isLoading.value = true
+        _otpErrorMessage.value = null
+        _isOtpVerified.value = false
+
+        viewModelScope.launch {
+            Log.d("AuthViewModel", "Verifying OTP with email: $email, OTP: $otp")
+            val result = repository.verifyOtpPassword(email, otp)
+            _isLoading.value = false
+
+            if (result.isSuccess) {
+                _isOtpVerified.value = true
+            } else {
+                _otpErrorMessage.value = result.exceptionOrNull()?.message ?: "Xác minh OTP thất bại"
             }
         }
     }

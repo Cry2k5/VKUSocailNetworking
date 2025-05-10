@@ -15,16 +15,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.components.followers.PersonItem
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable
 fun ListNotification(
+    navController: NavController,
     onBackClick: () -> Unit = {}
 ) {
     Scaffold(
-        bottomBar = { NavigationBottom() }
+        bottomBar = { NavigationBottom(navController) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -76,14 +78,6 @@ fun ListNotification(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ListNotificationPreview() {
-    VKUSocialNetworkingTheme {
-        ListNotification()
     }
 }
 

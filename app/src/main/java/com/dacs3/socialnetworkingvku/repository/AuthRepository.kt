@@ -5,15 +5,15 @@ import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.data.user.User
 import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
-import com.dacs3.socialnetworkingvku.testApi.ApiService
+import com.dacs3.socialnetworkingvku.testApi.AuthApiService
 
 class AuthRepository(
-    private val apiService: ApiService,
+    private val authApiService: AuthApiService,
     private val tokenStoreManager: TokenStoreManager,
 ) {
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
-            val response = apiService.login(email, password)
+            val response = authApiService.login(email, password)
             Log.d("AuthRepository", "Raw response: $response")
             if (response.isSuccessful) {
                 val body = response.body()
@@ -49,7 +49,7 @@ class AuthRepository(
             Log.d("AuthRepository", "Register request: $registerRequest")
 
             // Gửi request đến API
-            val response = apiService.register(registerRequest)
+            val response = authApiService.register(registerRequest)
 
             // Log mã trạng thái của response (successful or not)
             Log.d("AuthRepository", "API response status: ${response.isSuccessful}, code: ${response.code()}")
@@ -96,7 +96,7 @@ class AuthRepository(
     suspend fun verifyOtp(username: String, email: String, address: String, otp: String,
                           password: String, dateOfBirth: String, phone: String, school: String): Result<ApiResponse> {
         return try {
-            val response = apiService.verifyOtp(username, email, address, otp, password, dateOfBirth, phone, school)
+            val response = authApiService.verifyOtp(username, email, address, otp, password, dateOfBirth, phone, school)
             if (response.isSuccessful) {
                 val apiResponse = response.body()
                 if (apiResponse != null) {
@@ -112,9 +112,44 @@ class AuthRepository(
         }
     }
 
+    suspend fun forgotPassword(email: String): Result<ApiResponse> {
+
+        return try {
+            val response = authApiService.forgotPassword(email)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse != null) {
+                    Result.success(apiResponse)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                Result.failure(Exception("Forgot password failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+
+        }
+    }
+
+    suspend fun verifyOtpPassword(email: String, otp: String): Result<Any> {
+        return try {
+            val response = authApiService.verifyOtpPassword(email, otp)
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: Any())
+            } else {
+                Result.failure(Exception("Verify OTP failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+
     suspend fun logout(email: String): Result<ApiResponse> {
         return try {
-            val response = apiService.logout(email)
+            val response = authApiService.logout(email)
             Log.d("AuthRepository", "Logout response: ${response.body()}")
             if (response.isSuccessful) {
                 val apiResponse = response.body()
@@ -133,5 +168,7 @@ class AuthRepository(
         }
 
     }
+
+
 
 }

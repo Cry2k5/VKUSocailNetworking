@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.components.SearchBar
 import com.dacs3.socialnetworkingvku.ui.components.TopAppBarHeader
@@ -16,13 +17,13 @@ import com.dacs3.socialnetworkingvku.ui.components.chat.MessageItem
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable
-fun MessageScreen() {
+fun MessageScreen(navController:NavController) {
     Scaffold(
         topBar = {
             TopAppBarHeader(content = "Nhắn tin")
         },
         bottomBar = {
-            NavigationBottom()
+            NavigationBottom(navController = navController)
         }
     ) { innerPadding ->
         Column(modifier = Modifier
@@ -43,12 +44,5 @@ fun MessageScreen() {
                 }
             }
         }
-    }
-}
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun MessagePreview() {
-    VKUSocialNetworkingTheme {
-        MessageScreen()
     }
 }
