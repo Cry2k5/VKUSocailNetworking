@@ -6,6 +6,7 @@ import android.util.Log
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
+import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
 import com.dacs3.socialnetworkingvku.data.post.requests.PostRequest
 import com.dacs3.socialnetworkingvku.data.post.response.Post
 import com.dacs3.socialnetworkingvku.data.post.response.PostWithStatsResponse
@@ -82,6 +83,36 @@ class PostRepository(
             Result.failure(e)
         }
     }
+
+    suspend fun likePost(postId: Long): Result<ApiResponse> {
+        return try {
+            val tokenDataStore = tokenStoreManager.accessTokenFlow.first()
+            val token = "Bearer $tokenDataStore"
+
+            // Gọi API bất đồng bộ, Retrofit sẽ tự động xử lý việc này trong nền
+            val response = postApiService.likePost(token, postId)
+
+            // Kiểm tra phản hồi từ server
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse != null) {
+                    Result.success(apiResponse)  // Trả về kết quả thành công
+                } else {
+                    Result.failure(Exception("Empty response body"))  // Nếu không có body
+                }
+            } else {
+                // Nếu không thành công, lấy thông tin chi tiết từ errorBody
+                val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                Result.failure(Exception("Failed to like post: ${response.code()} - $errorBody"))
+            }
+        } catch (e: Exception) {
+            // Ghi lại lỗi (nếu có) khi gọi API
+            Log.e("likePost", "Error liking post with ID: $postId", e)
+            Result.failure(e)  // Trả về lỗi nếu có exception
+        }
+    }
+
+
 
     suspend fun uploadImageToCloudinary(imageUri: Uri, context: Context): String? =
         kotlinx.coroutines.suspendCancellableCoroutine { continuation ->

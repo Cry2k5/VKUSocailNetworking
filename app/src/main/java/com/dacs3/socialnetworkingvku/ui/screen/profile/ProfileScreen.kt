@@ -119,6 +119,7 @@ fun ProfileScreen(navController: NavController, userViewModel: UserViewModel) {
                             phoneNumber = phone
                         )
                     )
+                    userViewModel.resetStates()
                 }
                 selectedImageUri = null // Reset URI
                 userViewModel.resetStates()

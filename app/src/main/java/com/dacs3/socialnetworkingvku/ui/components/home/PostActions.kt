@@ -69,13 +69,3 @@ private fun PostActionButton(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPostActions() {
-    MaterialTheme {
-        Surface {
-            PostActions()
-        }
-    }
-}

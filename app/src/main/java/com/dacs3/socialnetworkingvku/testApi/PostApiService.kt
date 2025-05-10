@@ -1,5 +1,6 @@
 package com.dacs3.socialnetworkingvku.testApi
 
+import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
 import com.dacs3.socialnetworkingvku.data.post.requests.PostRequest
 import com.dacs3.socialnetworkingvku.data.post.response.Post
 import com.dacs3.socialnetworkingvku.data.post.response.PostWithStatsResponse
@@ -8,8 +9,10 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface PostApiService {
+
     @GET("post/all")
     suspend fun getAllPostsForHome(): Response<List<PostWithStatsResponse>>
 
@@ -18,4 +21,11 @@ interface PostApiService {
         @Header("Authorization") authorization: String,
         @Body postRequest: PostRequest
     ): Response<Post>
+
+
+    @POST("post/like/{id}")
+    suspend fun likePost(
+        @Header("Authorization") authorization: String,
+        @Path("id") id: Long
+    ): Response<ApiResponse>
 }

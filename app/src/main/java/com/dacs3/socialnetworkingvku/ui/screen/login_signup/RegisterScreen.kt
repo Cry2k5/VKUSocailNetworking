@@ -38,13 +38,13 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
 
     val context = LocalContext.current
 
-    var username by remember { mutableStateOf("anh") }
-    var email by remember { mutableStateOf("anhhuahuynh@gmail.com") }
+    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var dateOfBirth by remember { mutableStateOf<LocalDate?>(null) }
-    var address by remember { mutableStateOf("123") }
-    var phoneNumber by remember { mutableStateOf("123") }
-    var password by remember { mutableStateOf("123") }
-    var school by remember { mutableStateOf("123") }
+    var address by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var school by remember { mutableStateOf("") }
 
     // Điều hướng sang OTP khi đăng ký thành công
     LaunchedEffect(isSuccess) {

@@ -38,6 +38,10 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
     private val _postList = MutableStateFlow<List<PostEntity>>(emptyList())
     val postList: StateFlow<List<PostEntity>> = _postList
 
+    private val _isLikeSuccess = mutableStateOf(false)
+    val isLikeSuccess: State<Boolean> get() = _isLikeSuccess
+
+
     fun getAllPosts() {
         _isLoading.value = true
         _errorMessage.value = null
@@ -101,6 +105,33 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
             }
         }
     }
+
+    fun likePost(postId: Long) {
+        _isLoading.value = true
+        _errorMessage.value = null
+        _isLikeSuccess.value = false
+
+        viewModelScope.launch {
+            try {
+                Log.d("PostViewModel", "Starting to like post with ID: $postId")
+                val result = repository.likePost(postId)
+                _isLoading.value = false
+
+                if (result.isSuccess) {
+                    _isLikeSuccess.value = true
+                    Log.d("PostViewModel", "Successfully liked post with ID: $postId")
+                } else {
+                    _errorMessage.value = result.exceptionOrNull()?.message ?: "Error while liking the post."
+                    Log.e("PostViewModel", "Failed to like post with ID: $postId", result.exceptionOrNull())
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Có lỗi xảy ra khi like bài viết"
+                _isLoading.value = false
+                Log.e("PostViewModel", "Error liking post with ID: $postId", e)
+            }
+        }
+    }
+
 
     fun resetState() {
         _uploadState.value = UploadState.Idle

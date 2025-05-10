@@ -55,21 +55,9 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
         delay(500)
         postViewModel.getAllPostsFromRoomData()
         postViewModel.resetState()
+
     }
-
-    val isRefreshing by postViewModel.isDataLoaded
-    LaunchedEffect(isRefreshing) {
-        if (isRefreshing) {
-            Log.d("HomeScreen", "Refreshing posts...")
-            postViewModel.getAllPosts()
-
-            delay(500)
-
-            postViewModel.getAllPostsFromRoomData()
-
-            postViewModel.resetState()
-        }
-    }
+    Log.d("HomeScreen", "user: $user")
 
 
     // Khi logout thành công, điều hướng về login
@@ -203,7 +191,11 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
                     items(postList) { post ->
                         PostItem(
                             post = post,
-                            onLikeClick = { },
+                            onLikeClick = {
+                                if (!postViewModel.isLoading.value) {  // Đảm bảo không gọi khi đang trong quá trình tải
+                                    postViewModel.likePost(post.postId)
+                                }
+                            },
                             onCommentClick = { },
                             onShareClick = { }
                         )

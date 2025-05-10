@@ -33,7 +33,7 @@ import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 @Composable
 fun PostItem(
     post: PostEntity,
-    onLikeClick: () -> Unit = {},
+    onLikeClick: (Long) -> Unit = {},
     onCommentClick: () -> Unit = {},
     onShareClick: () -> Unit = {}
 ) {
@@ -49,7 +49,7 @@ fun PostItem(
         )
         Spacer(modifier = Modifier.height(4.dp))
         PostActions(
-            onLikeClick = onLikeClick,
+            onLikeClick = { onLikeClick(post.postId)},
             onCommentClick = onCommentClick,
             onShareClick = onShareClick
         )
