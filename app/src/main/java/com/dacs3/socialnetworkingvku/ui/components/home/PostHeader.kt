@@ -38,23 +38,30 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun PostHeader(username: String, date: String, imgAvatar:String?) {
+fun PostHeader(username: String, date: String, imgAvatar: String?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
+        // Nếu avatar không null và không rỗng, tải ảnh từ URL, nếu không thì sử dụng ảnh mặc định
+        val avatarPainter = rememberAsyncImagePainter(
+            model = imgAvatar?.takeIf { it.isNotEmpty() } ?: R.drawable.avatar_default
+        )
+
         Image(
-            painter = rememberAsyncImagePainter(imgAvatar)?:  painterResource(id = R.drawable.demo_image_background) ,
+            painter = avatarPainter,
             contentDescription = "Avatar",
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
         )
+
         Spacer(modifier = Modifier.width(8.dp))
+
         Column {
             Text(username, fontWeight = FontWeight.Bold)
             Text(formatDateTime(date), fontSize = 12.sp, color = Color.Gray)
         }
     }
-
 }
+
 fun formatDateTime(isoString: String): String {
     return try {
         val formatterInput = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")

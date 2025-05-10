@@ -12,6 +12,7 @@ import com.dacs3.socialnetworkingvku.repository.UserRepository
 import com.dacs3.socialnetworkingvku.roomdata.AppDatabase
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.AuthApiService
+import com.dacs3.socialnetworkingvku.testApi.PostApiService
 import com.dacs3.socialnetworkingvku.testApi.RetrofitClient
 import com.dacs3.socialnetworkingvku.testApi.UserApiService
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
@@ -29,15 +30,16 @@ class MainActivity : ComponentActivity() {
         val retrofit = RetrofitClient.provideRetrofit(applicationContext, tokenStore)
         val authApiService = retrofit.create(AuthApiService::class.java)
         val userApiService = retrofit.create(UserApiService::class.java)
+        val postApiService = retrofit.create(PostApiService::class.java)
         val authRepository = AuthRepository(authApiService, tokenStore)
 
         val postDao = AppDatabase.getInstance(applicationContext).postDao()
-        val postRepository = PostRepository(authApiService, postDao, tokenStore)
+        val postRepository = PostRepository(postApiService, postDao, tokenStore)
 
         val authViewModel = AuthViewModel(authRepository, tokenStore)
         val postViewModel = PostViewModel(postRepository)
         val userRepository = UserRepository(userApiService, tokenStore)
-        val userViewModel = UserViewModel(userRepository)
+        val userViewModel = UserViewModel(userRepository, tokenStore)
         val context = this
         val config = mapOf(
             "cloud_name" to "de19voxxj",

@@ -43,12 +43,14 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
     val avatarRequest = remember(user.avatar) {
         ImageRequest.Builder(context)
             .data(user.avatar.takeIf { !it.isNullOrBlank() } ?: R.drawable.avatar_default)
+            .size(256) // hoặc .size(128, 128) nếu bạn muốn cụ thể hơn
             .crossfade(true)
             .build()
     }
 
     LaunchedEffect (Unit)
     {
+
         postViewModel.getAllPosts()
         delay(500)
         postViewModel.getAllPostsFromRoomData()

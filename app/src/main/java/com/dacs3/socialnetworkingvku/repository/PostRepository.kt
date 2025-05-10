@@ -13,18 +13,18 @@ import com.dacs3.socialnetworkingvku.roomdata.post.PostDao
 import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 import com.dacs3.socialnetworkingvku.roomdata.post.toEntity
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
-import com.dacs3.socialnetworkingvku.testApi.AuthApiService
+import com.dacs3.socialnetworkingvku.testApi.PostApiService
 import kotlinx.coroutines.flow.first
 import java.io.ByteArrayOutputStream
 
 class PostRepository(
-    private val authApiService: AuthApiService,
+    private val postApiService: PostApiService,
     private val postDao: PostDao,
     private val tokenStoreManager: TokenStoreManager
     ) {
     suspend fun getAllPostsWithStats(): Result<List<PostWithStatsResponse>> {
         return try {
-            val response = authApiService.getAllPostsForHome()
+            val response = postApiService.getAllPostsForHome()
             if (response.isSuccessful) {
                 Log.d("PostRepository", "Response body: ${response.body()}")
                 val posts = response.body()
@@ -57,7 +57,7 @@ class PostRepository(
             val token = "Bearer $tokenDataStore"
 
             // Gửi yêu cầu tạo bài viết
-            val response = authApiService.createPost(token, postRequest)
+            val response = postApiService.createPost(token, postRequest)
 
             // Kiểm tra phản hồi có thành công không
             if (response.isSuccessful) {
@@ -83,7 +83,6 @@ class PostRepository(
         }
     }
 
-
     suspend fun uploadImageToCloudinary(imageUri: Uri, context: Context): String? =
         kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
             try {
@@ -94,17 +93,25 @@ class PostRepository(
                     return@suspendCancellableCoroutine
                 }
 
+                // Upload ảnh lên Cloudinary với các tham số resize và folder
                 MediaManager.get().upload(imageBytes)
                     .option("resource_type", "image")
                     .option("upload_preset", "ml_default")
+                    .option("folder", "posts")  // Thêm tham số để upload vào folder 'posts'
                     .callback(object : UploadCallback {
                         override fun onStart(requestId: String?) {}
 
                         override fun onProgress(requestId: String?, bytes: Long, totalBytes: Long) {}
 
                         override fun onSuccess(requestId: String?, resultData: Map<*, *>?) {
-                            val url = resultData?.get("secure_url") as? String
-                            continuation.resume(url, null)
+                            // Lấy URL của ảnh đã upload
+                            val originalUrl = resultData?.get("secure_url") as? String
+
+                            // Chỉnh sửa URL để trả về ảnh với độ phân giải thấp (800x600)
+                            val resizedUrl = originalUrl?.replace("/upload/", "/upload/w_800,h_600,c_limit/")
+
+                            // Trả về URL ảnh đã chỉnh sửa
+                            continuation.resume(resizedUrl, null)
                         }
 
                         override fun onError(requestId: String?, error: ErrorInfo?) {
@@ -136,6 +143,7 @@ class PostRepository(
             null
         }
     }
+
 
     suspend fun getAllPostsFromRoom(): List<PostEntity> {
         return postDao.getAllPosts()

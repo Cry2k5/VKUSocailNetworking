@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dacs3.socialnetworkingvku.data.user.User
 import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
+import com.dacs3.socialnetworkingvku.data.user.UserDto
 import com.dacs3.socialnetworkingvku.repository.AuthRepository
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,7 @@ class AuthViewModel(private val repository: AuthRepository, private val tokenSto
     val pendingRegisterData: RegisterRequest? get() = _pendingRegisterData.value
 
     val user: Flow<User> = tokenStoreManager.userFlow
-
+    val userDto: Flow<UserDto> = tokenStoreManager.userDtoFlow
     // Thêm riêng biệt các trạng thái
     private val _isForgotSuccess = mutableStateOf(false)
     val isForgotSuccess: State<Boolean> = _isForgotSuccess

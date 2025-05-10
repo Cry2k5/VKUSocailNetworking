@@ -8,7 +8,7 @@ fun PostWithStatsResponse.toEntity(): PostEntity {
         userId = post.userdto.id,
         userName = post.userdto.name,
         userEmail = post.userdto.email,
-        userAvatar = post.userdto.avatar,
+        userAvatar = post.userdto.avatar.takeIf { it.isNotBlank() }, // Chỉ lưu nếu không rỗng
         content = post.content,
         image = post.image,
         video = post.video,

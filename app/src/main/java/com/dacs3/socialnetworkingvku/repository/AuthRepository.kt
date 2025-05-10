@@ -4,6 +4,7 @@ import android.util.Log
 import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.data.user.User
 import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
+import com.dacs3.socialnetworkingvku.data.user.UserDto
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.AuthApiService
 

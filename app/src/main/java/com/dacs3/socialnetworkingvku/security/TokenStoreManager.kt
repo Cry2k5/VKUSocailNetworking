@@ -5,26 +5,36 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.dacs3.socialnetworkingvku.data.user.User
+import com.dacs3.socialnetworkingvku.data.user.UserDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+// DataStore extensions
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
+val Context.dataStoreUpdateUser: DataStore<Preferences> by preferencesDataStore(name = "userDto_prefs")
 
 class TokenStoreManager(private val context: Context) {
 
-    // Các khóa để lưu thông tin người dùng và token
     companion object {
+        // Token keys
         private val TOKEN_KEY = stringPreferencesKey("jwt_token")
         private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
 
-        // Các khóa thông tin người dùng
+        // Basic User keys
         private val USER_ID = longPreferencesKey("user_id")
         private val USER_EMAIL = stringPreferencesKey("user_email")
         private val USER_NAME = stringPreferencesKey("user_name")
         private val USER_AVATAR = stringPreferencesKey("user_avatar")
+
+        // Extended UserDto keys
+        private val USER_ADDRESS = stringPreferencesKey("user_address")
+        private val USER_DATE_OF_BIRTH = stringPreferencesKey("user_date_of_birth")
+        private val USER_PHONE = stringPreferencesKey("user_phone")
+        private val USER_SCHOOL = stringPreferencesKey("user_school")
+        private val USER_BIO = stringPreferencesKey("user_bio")
     }
 
-    // Lưu token vào DataStore
+    /** Save access and refresh token */
     suspend fun saveToken(accessToken: String, refreshToken: String) {
         context.dataStore.edit { prefs ->
             prefs[TOKEN_KEY] = accessToken
@@ -32,47 +42,65 @@ class TokenStoreManager(private val context: Context) {
         }
     }
 
-    // Lưu thông tin người dùng vào DataStore
+    /** Save basic user info */
     suspend fun saveUser(user: User) {
         context.dataStore.edit { prefs ->
-            prefs[USER_ID] = user.id // Lưu ID người dùng
-            prefs[USER_EMAIL] = user.email ?: "" // Lưu email của người dùng
-            prefs[USER_NAME] = user.name ?: "" // Lưu tên của người dùng
-            prefs[USER_AVATAR] = user.avatar ?: "" // Lưu avatar của người dùng
+            prefs[USER_ID] = user.id
+            prefs[USER_EMAIL] = user.email ?: ""
+            prefs[USER_NAME] = user.name ?: ""
+            prefs[USER_AVATAR] = user.avatar ?: ""
         }
     }
 
-    // Lấy thông tin người dùng từ DataStore
-    val userFlow: Flow<User> = context.dataStore.data
-        .map { prefs ->
-            val userId = prefs[USER_ID]?:0
-            val userEmail = prefs[USER_EMAIL] ?: ""
-            val userName = prefs[USER_NAME] ?: ""
-            val userAvatar = prefs[USER_AVATAR] ?: ""
-            User(userId, userEmail, userName, userAvatar) // Trả về đối tượng User
+    /** Save full user profile */
+    suspend fun saveUserDto(user: UserDto) {
+        context.dataStoreUpdateUser.edit { prefs ->
+            prefs[USER_ID] = user.userId
+            prefs[USER_EMAIL] = user.email ?: ""
+            prefs[USER_NAME] = user.username ?: ""
+            prefs[USER_AVATAR] = user.avatar ?: ""
+            prefs[USER_ADDRESS] = user.address ?: ""
+            prefs[USER_DATE_OF_BIRTH] = user.dateOfBirth ?: ""
+            prefs[USER_PHONE] = user.phoneNumber ?: ""
+            prefs[USER_SCHOOL] = user.school ?: ""
+            prefs[USER_BIO] = user.bio ?: ""
         }
+    }
 
-    // Lấy token từ DataStore
-    val accessTokenFlow: Flow<String?> = context.dataStore.data
-        .map { prefs -> prefs[TOKEN_KEY] }
+    /** Observe basic user data */
+    val userFlow: Flow<User> = context.dataStore.data.map { prefs ->
+        User(
+            id = prefs[USER_ID] ?: 0,
+            email = prefs[USER_EMAIL] ?: "",
+            name = prefs[USER_NAME] ?: "",
+            avatar = prefs[USER_AVATAR] ?: ""
+        )
+    }
 
-    val refreshTokenFlow: Flow<String?> = context.dataStore.data
-        .map { prefs -> prefs[REFRESH_TOKEN_KEY] }
+    /** Observe full user profile */
+    val userDtoFlow: Flow<UserDto> = context.dataStoreUpdateUser.data.map { prefs ->
+        UserDto(
+            userId = prefs[USER_ID] ?: 0,
+            email = prefs[USER_EMAIL] ?: "",
+            username = prefs[USER_NAME] ?: "",
+            address = prefs[USER_ADDRESS] ?: "",
+            dateOfBirth = prefs[USER_DATE_OF_BIRTH] ?: "",
+            bio = prefs[USER_BIO] ?: "",
+            school = prefs[USER_SCHOOL] ?: "",
+            avatar = prefs[USER_AVATAR] ?: "",
+            phoneNumber = prefs[USER_PHONE] ?: ""
+        )
+    }
 
-    // Lấy thông tin người dùng từ DataStore
-    val userIdFlow: Flow<Long?> = context.dataStore.data
-        .map { prefs -> prefs[USER_ID] }
+    /** Observe individual fields */
+    val accessTokenFlow: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
+    val refreshTokenFlow: Flow<String?> = context.dataStore.data.map { it[REFRESH_TOKEN_KEY] }
+    val userIdFlow: Flow<Long?> = context.dataStore.data.map { it[USER_ID] }
+    val userEmailFlow: Flow<String?> = context.dataStore.data.map { it[USER_EMAIL] }
+    val userNameFlow: Flow<String?> = context.dataStore.data.map { it[USER_NAME] }
+    val userAvatarFlow: Flow<String?> = context.dataStore.data.map { it[USER_AVATAR] }
 
-    val userEmailFlow: Flow<String?> = context.dataStore.data
-        .map { prefs -> prefs[USER_EMAIL] }
-
-    val userNameFlow: Flow<String?> = context.dataStore.data
-        .map { prefs -> prefs[USER_NAME] }
-
-    val userAvatarFlow: Flow<String?> = context.dataStore.data
-        .map { prefs -> prefs[USER_AVATAR] }
-
-    // Xóa token khỏi DataStore
+    /** Clear only tokens */
     suspend fun clearToken() {
         context.dataStore.edit { prefs ->
             prefs.remove(TOKEN_KEY)
@@ -80,7 +108,7 @@ class TokenStoreManager(private val context: Context) {
         }
     }
 
-    // Xóa thông tin người dùng khỏi DataStore
+    /** Clear basic user data */
     suspend fun clearUser() {
         context.dataStore.edit { prefs ->
             prefs.remove(USER_ID)
@@ -90,16 +118,9 @@ class TokenStoreManager(private val context: Context) {
         }
     }
 
-    // Xóa tất cả thông tin (token và người dùng)
+    /** Clear all user and token data */
     suspend fun clearAll() {
-        context.dataStore.edit { prefs ->
-            prefs.remove(TOKEN_KEY)
-            prefs.remove(REFRESH_TOKEN_KEY)
-            prefs.remove(USER_ID)
-            prefs.remove(USER_EMAIL)
-            prefs.remove(USER_NAME)
-            prefs.remove(USER_AVATAR)
-        }
+        context.dataStore.edit { it.clear() }
+        context.dataStoreUpdateUser.edit { it.clear() }
     }
 }
-

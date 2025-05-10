@@ -60,17 +60,6 @@ interface AuthApiService {
     ): Response<ApiResponse>
 
 
-
-
-    @GET("post/all")
-    suspend fun getAllPostsForHome(): Response<List<PostWithStatsResponse>>
-
-    @POST("post/create")
-    suspend fun createPost(
-        @Header("Authorization") authorization: String,
-        @Body postRequest: PostRequest
-    ): Response<Post>
-
 //    wyU6rm-15kXjqEn4ElwG6zwhLaE: secrey key
 //    313163933254635: api key
 }
