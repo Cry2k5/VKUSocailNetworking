@@ -52,10 +52,10 @@ import java.util.Calendar
 @Composable
 fun ProfileScreen(navController: NavController, userViewModel: UserViewModel) {
     LaunchedEffect(Unit) {
+        userViewModel.resetStates()
         userViewModel.getInfo()
         delay(500)
         Log.d("ProfileScreen", "Fetching user info...")
-        userViewModel.resetStates()
     }
 
     val context = LocalContext.current
@@ -68,7 +68,6 @@ fun ProfileScreen(navController: NavController, userViewModel: UserViewModel) {
     var school by remember { mutableStateOf("Chưa cập nhật") }
     var bio by remember { mutableStateOf("Chưa có tiểu sử") }
 
-    // ✅ Update khi userDto thay đổi
     LaunchedEffect(userDto) {
         fullName = userDto.username
         phone = userDto.phoneNumber ?: ""
@@ -104,7 +103,9 @@ fun ProfileScreen(navController: NavController, userViewModel: UserViewModel) {
 
     LaunchedEffect(uploadState) {
         when (uploadState) {
-            UploadAvatarState.Loading -> {}
+            UploadAvatarState.Loading -> {
+                Toast.makeText(context, "Đang upload...", Toast.LENGTH_SHORT).show()
+            }
             UploadAvatarState.Success -> {
                 Toast.makeText(context, "Upload thành công!", Toast.LENGTH_SHORT).show()
                 uploadedImageUrl?.let {
@@ -119,24 +120,24 @@ fun ProfileScreen(navController: NavController, userViewModel: UserViewModel) {
                             phoneNumber = phone
                         )
                     )
-                    userViewModel.resetStates()
+                    selectedImageUri = null
                 }
-                selectedImageUri = null // Reset URI
-                userViewModel.resetStates()
             }
             UploadAvatarState.Error -> {
                 Toast.makeText(context, "Upload thất bại!", Toast.LENGTH_SHORT).show()
             }
-            else -> Unit
+            UploadAvatarState.Idle -> {} // Do nothing
         }
+
+        userViewModel.resetStates() // Reset sau cùng, để tránh Toast bị lặp
     }
+
 
     LaunchedEffect(isUpdateSuccess) {
         if (isUpdateSuccess) {
             Toast.makeText(context, "Cập nhật thành công!", Toast.LENGTH_SHORT).show()
             navController.popBackStack()
-            userViewModel.resetStates()
-        // Prevent loop in navigation
+            userViewModel.resetStates()  // Reset after success
         }
     }
 

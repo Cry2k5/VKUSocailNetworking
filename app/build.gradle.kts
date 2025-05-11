@@ -66,6 +66,7 @@ dependencies {
 
     // Material 3 library for Material Design components
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.runtime.livedata)
 
     // Unit test dependencies
     testImplementation(libs.junit)

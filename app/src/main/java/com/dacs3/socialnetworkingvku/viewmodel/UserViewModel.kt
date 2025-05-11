@@ -23,10 +23,10 @@ class UserViewModel(
     private val tokenStoreManager: TokenStoreManager
 ) : ViewModel() {
 
-    private val _uploadState = MutableStateFlow(UploadAvatarState.Idle)
+    private var _uploadState = MutableStateFlow(UploadAvatarState.Idle)
     val uploadState: StateFlow<UploadAvatarState> = _uploadState.asStateFlow()
 
-    private val _uploadedImageUrl = mutableStateOf<String?>(null)
+    private var _uploadedImageUrl = mutableStateOf<String?>(null)
     val uploadedImageUrl: State<String?> = _uploadedImageUrl
 
     private val _isLoading = mutableStateOf(false)
@@ -77,6 +77,17 @@ class UserViewModel(
                 val result = repository.updateUser(request)
                 _isLoading.value = false
                 if (result.isSuccess) {
+                    val updatedUser = result.getOrNull()
+                    updatedUser?.let {
+                        tokenStoreManager.saveUser(
+                            User(
+                                id = it.userId,
+                                email = it.email,
+                                name = it.username,
+                                avatar = it.avatar?:""
+                            )
+                        )
+                    }
                     _isUpdateSuccess.value = true
                 } else {
                     _errorMessage.value = result.exceptionOrNull()?.message ?: "Cập nhật thất bại"
@@ -87,6 +98,7 @@ class UserViewModel(
             }
         }
     }
+
 
     fun deleteAccount() {
         _isLoading.value = true
@@ -130,6 +142,7 @@ class UserViewModel(
         _errorMessage.value = null
         _isUpdateSuccess.value = false
         _isDeleteSuccess.value = false
+        _uploadState.value = UploadAvatarState.Idle
     }
 }
 

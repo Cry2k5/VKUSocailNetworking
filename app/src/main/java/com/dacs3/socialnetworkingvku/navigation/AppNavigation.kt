@@ -10,6 +10,7 @@ import com.dacs3.socialnetworkingvku.ui.screen.chat.ChatScreen
 import com.dacs3.socialnetworkingvku.ui.screen.chat.MessageScreen
 import com.dacs3.socialnetworkingvku.ui.screen.followers.FollowersScreen
 import com.dacs3.socialnetworkingvku.ui.screen.home.HomeScreen
+import com.dacs3.socialnetworkingvku.ui.screen.home.PostCommentScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.AccountVerificationScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.ForgotPasswordScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.LoginScreen
@@ -43,6 +44,15 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
         composable("chat") { MessageScreen(navController = navController) }
         composable("notification") { NotificationScreen(navController = navController) }
         composable("profile") { ProfileScreen(navController = navController, userViewModel =  userViewModel) }
+
+
+        composable("comments/{postId}") { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId")?.toLongOrNull()
+            postId?.let {
+                PostCommentScreen(postId = it, navController = navController, postViewModel = postViewModel)
+            }
+        }
+
 
     }
 }

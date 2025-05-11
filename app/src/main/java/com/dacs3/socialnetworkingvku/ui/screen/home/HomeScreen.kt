@@ -48,6 +48,12 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
             .build()
     }
 
+    val isLikeLoad by postViewModel.isLikeLoading
+    val isLiked by postViewModel.isLikeSuccess
+
+    val isCommentLoad by postViewModel.isCommentLoading
+    val isCommented by postViewModel.isCommentSuccess
+
     LaunchedEffect (Unit)
     {
 
@@ -67,6 +73,7 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
             controller.navigate("login") {
                 popUpTo("home") { inclusive = true }
             }
+            viewModel.resetStates()
         }
     }
 
@@ -192,11 +199,18 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
                         PostItem(
                             post = post,
                             onLikeClick = {
-                                if (!postViewModel.isLoading.value) {  // Đảm bảo không gọi khi đang trong quá trình tải
+                                if (!isLikeLoad) {
                                     postViewModel.likePost(post.postId)
+                                    postViewModel.resetState()// Đảm bảo không gọi khi đang trong quá trình tải
                                 }
                             },
-                            onCommentClick = { },
+                            onCommentClick = {
+                                if (!isCommentLoad) {
+                                    Log.d("HomeScreen", "onCommentClick: ${post.postId}")
+                                    controller.navigate("comments/${post.postId}")
+                                    postViewModel.resetState()
+                                }
+                            },
                             onShareClick = { }
                         )
                     }

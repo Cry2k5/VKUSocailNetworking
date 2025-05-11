@@ -8,6 +8,7 @@ import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
 import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
 import com.dacs3.socialnetworkingvku.data.post.requests.PostRequest
+import com.dacs3.socialnetworkingvku.data.post.response.CommentResponse
 import com.dacs3.socialnetworkingvku.data.post.response.Post
 import com.dacs3.socialnetworkingvku.data.post.response.PostWithStatsResponse
 import com.dacs3.socialnetworkingvku.roomdata.post.PostDao
@@ -74,7 +75,10 @@ class PostRepository(
                 }
             } else {
                 // Log khi phản hồi không thành công
-                Log.e("PostRepository", "Tạo bài viết thất bại: ${response.code()} ${response.message()}")
+                Log.e(
+                    "PostRepository",
+                    "Tạo bài viết thất bại: ${response.code()} ${response.message()}"
+                )
                 Result.failure(Exception("Tạo bài viết thất bại: ${response.code()} ${response.message()}"))
             }
         } catch (e: Exception) {
@@ -109,6 +113,46 @@ class PostRepository(
             // Ghi lại lỗi (nếu có) khi gọi API
             Log.e("likePost", "Error liking post with ID: $postId", e)
             Result.failure(e)  // Trả về lỗi nếu có exception
+        }
+    }
+
+    suspend fun getCommentsForPost(postId: Long): Result<List<CommentResponse>> {
+        return try {
+            val response = postApiService.getCommentsForPost(postId)
+            if (response.isSuccessful) {
+                val comments = response.body()
+                if (comments != null) {
+                    Result.success(comments)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                Result.failure(Exception("Failed to fetch comments: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun commentPost(postId: Long, content: String): Result<ApiResponse> {
+
+        return try {
+            val tokenDataStore = tokenStoreManager.accessTokenFlow.first()
+            val token = "Bearer $tokenDataStore"
+            val response = postApiService.commentPost(token, postId, content)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse != null) {
+                    Result.success(apiResponse)
+                    } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                Result.failure(Exception("Failed to comment post: ${response.code()}"))
+        }
+            } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

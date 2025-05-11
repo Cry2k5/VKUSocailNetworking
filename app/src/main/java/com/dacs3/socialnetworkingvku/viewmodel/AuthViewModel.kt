@@ -28,7 +28,7 @@ class AuthViewModel(private val repository: AuthRepository, private val tokenSto
 
     val user: Flow<User> = tokenStoreManager.userFlow
     val userDto: Flow<UserDto> = tokenStoreManager.userDtoFlow
-    // Thêm riêng biệt các trạng thái
+
     private val _isForgotSuccess = mutableStateOf(false)
     val isForgotSuccess: State<Boolean> = _isForgotSuccess
 
