@@ -56,7 +56,8 @@ fun ListFollowers(navController: NavController){
             repeat(10) {
                 PersonItem(
                     name = "Trịnh Quyết Chiến",
-                    nickname = "Biệt danh",
+                    avatar = "Biệt danh",
+                    nickname = "Concac",
                     isFollowed = false,
                     onFollowClick = { /* TODO: Follow */ }
                 )

@@ -18,11 +18,12 @@ import com.dacs3.socialnetworkingvku.ui.screen.login_signup.RegisterScreen
 import com.dacs3.socialnetworkingvku.ui.screen.notification.NotificationScreen
 import com.dacs3.socialnetworkingvku.ui.screen.profile.ProfileScreen
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.UserViewModel
 
 @Composable
-fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userViewModel: UserViewModel,context:Context) {
+fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userViewModel: UserViewModel,context:Context, followerViewModel: FollowerViewModel) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "login") {
@@ -40,7 +41,7 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
         composable("create_post"){
             CreatePostScreen(controller = navController, postViewModel = postViewModel, context = context)
         }
-        composable("followers") { FollowersScreen(navController = navController) }
+        composable("followers") { FollowersScreen(navController = navController, followerViewModel = followerViewModel) }
         composable("chat") { MessageScreen(navController = navController) }
         composable("notification") { NotificationScreen(navController = navController) }
         composable("profile") { ProfileScreen(navController = navController, userViewModel =  userViewModel) }

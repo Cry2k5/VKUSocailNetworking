@@ -35,24 +35,42 @@ import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 @Composable
 fun PostItem(
     post: PostEntity,
-    onLikeClick: (Long) -> Unit = {},
+    onLikeClick: (Long, Boolean) -> Unit = { _, _ -> },
     onCommentClick: (Long) -> Unit = {},
     onShareClick: () -> Unit = {}
 ) {
+    // State cục bộ cho hiệu ứng UI mượt mà không cần reload toàn bộ
+    val likeState = remember { mutableStateOf(post.isLiked) }
+    val likeCountState = remember { mutableStateOf(post.likeCount) }
+    val commentCountState = remember { mutableStateOf(post.commentCount) }
+
     Column(modifier = Modifier.padding(16.dp)) {
         PostHeader(username = post.userEmail, date = post.createdAt, imgAvatar = post.userAvatar)
         Spacer(modifier = Modifier.height(8.dp))
         PostContent(content = post.content, imgContent = post.image)
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Hiển thị Like / Comment count
         PostStats(
-            likeCount = post.likeCount,
-            commentCount = post.commentCount,
+            likeCount = likeCountState.value,
+            commentCount = commentCountState.value,
             shareCount = 0
         )
         Spacer(modifier = Modifier.height(4.dp))
+
+        // Các nút tương tác
         PostActions(
-            onLikeClick = { onLikeClick(post.postId)},
-            onCommentClick = {onCommentClick(post.postId)},
+            isLiked = likeState.value,
+            onLikeClick = {
+                val newState = !likeState.value
+                likeState.value = newState
+                likeCountState.value += if (newState) 1 else -1
+                onLikeClick(post.postId, likeState.value) // truyền trạng thái trước khi API gọi xong
+            },
+            onCommentClick = {
+                commentCountState.value += 1
+                onCommentClick(post.postId)
+            },
             onShareClick = onShareClick
         )
     }

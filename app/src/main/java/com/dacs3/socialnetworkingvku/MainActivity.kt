@@ -7,11 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import com.cloudinary.android.MediaManager
 import com.dacs3.socialnetworkingvku.navigation.AppNavigation
 import com.dacs3.socialnetworkingvku.repository.AuthRepository
+import com.dacs3.socialnetworkingvku.repository.FollowerRepository
 import com.dacs3.socialnetworkingvku.repository.PostRepository
 import com.dacs3.socialnetworkingvku.repository.UserRepository
 import com.dacs3.socialnetworkingvku.roomdata.AppDatabase
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.AuthApiService
+import com.dacs3.socialnetworkingvku.testApi.FollowerApiService
 import com.dacs3.socialnetworkingvku.testApi.PostApiService
 import com.dacs3.socialnetworkingvku.testApi.RetrofitClient
 import com.dacs3.socialnetworkingvku.testApi.UserApiService
@@ -31,15 +33,18 @@ class MainActivity : ComponentActivity() {
         val authApiService = retrofit.create(AuthApiService::class.java)
         val userApiService = retrofit.create(UserApiService::class.java)
         val postApiService = retrofit.create(PostApiService::class.java)
+        val followerApiService = retrofit.create(FollowerApiService::class.java)
         val authRepository = AuthRepository(authApiService, tokenStore)
 
         val postDao = AppDatabase.getInstance(applicationContext).postDao()
         val postRepository = PostRepository(postApiService, postDao, tokenStore)
-
         val authViewModel = AuthViewModel(authRepository, tokenStore)
         val postViewModel = PostViewModel(postRepository)
+        val followerRepository = FollowerRepository(tokenStore, followerApiService)
         val userRepository = UserRepository(userApiService, tokenStore)
         val userViewModel = UserViewModel(userRepository, tokenStore)
+
+        val followerViewModel = com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel(followerRepository)
         val context = this
         val config = mapOf(
             "cloud_name" to "de19voxxj",
@@ -49,7 +54,7 @@ class MainActivity : ComponentActivity() {
         MediaManager.init(this, config)
         setContent {
             VKUSocialNetworkingTheme {
-                AppNavigation(viewModel = authViewModel, postViewModel = postViewModel, userViewModel = userViewModel,context = context)
+                AppNavigation(viewModel = authViewModel, postViewModel = postViewModel, userViewModel = userViewModel,context = context, followerViewModel = followerViewModel)
             }
         }
     }

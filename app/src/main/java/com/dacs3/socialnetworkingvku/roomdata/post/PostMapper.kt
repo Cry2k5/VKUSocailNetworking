@@ -14,6 +14,7 @@ fun PostWithStatsResponse.toEntity(): PostEntity {
         video = post.video,
         createdAt = post.create_at,
         likeCount = likeCount,
-        commentCount = commentCount
+        commentCount = commentCount,
+        isLiked = isLiked
     )
 }

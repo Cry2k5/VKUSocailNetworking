@@ -31,21 +31,30 @@ fun PostCommentScreen(postId: Long, navController: NavController, postViewModel:
     val isCommentLoad by postViewModel.isCommentLoading
     val isCommented by postViewModel.isCommentSuccess
 
+    var hasHandledCommentSuccess by remember { mutableStateOf(false) }
 
-    Log.d("PostCommentScreen", ""+postId)
+    // Log postId for debugging
+    Log.d("PostCommentScreen", "Post ID: $postId")
 
     // Refresh comments when a new comment is posted
     LaunchedEffect(isCommented) {
-        if (isCommented) {
+        if (isCommented && !hasHandledCommentSuccess) {
             postViewModel.getCommentsForPost(postId)
-            postViewModel.resetState()
+            hasHandledCommentSuccess = true
         }
     }
 
     // Initial comments load
     LaunchedEffect(postId) {
         postViewModel.getCommentsForPost(postId)
+    }
+
+    // Reset comment state when navigating back
+    IconButton(onClick = {
         postViewModel.resetState()
+        navController.popBackStack()
+    }) {
+        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
     }
 
     Scaffold(
@@ -70,6 +79,7 @@ fun PostCommentScreen(postId: Long, navController: NavController, postViewModel:
                     if (commentText.isNotBlank() && !isCommentLoad) {
                         postViewModel.commentPost(postId, commentText)
                         commentText = ""
+                        hasHandledCommentSuccess = false // Allow re-triggering comment fetch after comment sent
                     }
                 },
                 modifier = Modifier

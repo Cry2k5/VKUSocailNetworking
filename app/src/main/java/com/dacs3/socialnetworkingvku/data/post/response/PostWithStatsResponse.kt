@@ -6,6 +6,13 @@ import com.google.gson.annotations.SerializedName
 data class PostWithStatsResponse(
     @SerializedName("post")
     val post: PostGetRequest,
+
+    @SerializedName("likeCount")
     val likeCount: Int,
-    val commentCount: Int
+
+    @SerializedName("commentCount")
+    val commentCount: Int,
+
+    @SerializedName("isLiked")
+    val isLiked:Boolean
 )

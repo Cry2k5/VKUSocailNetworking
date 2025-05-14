@@ -18,5 +18,6 @@ data class PostEntity(
     val createdAt: String,
 
     val likeCount: Int,
-    val commentCount: Int
+    val commentCount: Int,
+    val isLiked: Boolean
 )

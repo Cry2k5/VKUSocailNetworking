@@ -30,6 +30,7 @@ class AuthRepository(
                     Log.d("LoginScreen", "User: $user")
                     tokenStoreManager.saveUser(user)
                     tokenStoreManager.saveToken(body.accessToken, body.refreshToken)
+                    Log.d("LoginScreen", body.accessToken)
                     return Result.success(Unit)
                 } else {
                     Log.e("LoginScreen", "Missing body or user")

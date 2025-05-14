@@ -1,37 +1,36 @@
 package com.dacs3.socialnetworkingvku.ui.screen.followers
 
-import androidx.compose.runtime.Composable
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Message
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.fontResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.components.TopAppBarHeader
-import com.dacs3.socialnetworkingvku.ui.components.*
+import com.dacs3.socialnetworkingvku.ui.components.TitleSmallCustom
 import com.dacs3.socialnetworkingvku.ui.components.followers.PersonItem
-import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
+import com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel
+import kotlinx.coroutines.coroutineScope
+
 @Composable
-fun FollowersScreen(navController: NavController) {
+fun FollowersScreen(navController: NavController, followerViewModel: FollowerViewModel) {
+    val following by followerViewModel.followingList.observeAsState(emptyList())
+    val peopleList by followerViewModel.peopleList.observeAsState(emptyList())
+
+    LaunchedEffect(Unit) {
+        followerViewModel.getFollowing()
+        followerViewModel.getPeople()
+    }
+
     Scaffold(
         topBar = {
             TopAppBarHeader(
@@ -40,37 +39,40 @@ fun FollowersScreen(navController: NavController) {
                     IconButton(onClick = { /* Search */ }) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     }
-                })
+                }
+            )
         },
         bottomBar = {
             NavigationBottom(navController)
         }
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()) // ✅ Cuộn nếu nội dung dài
+                .padding(innerPadding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
-
-            // Danh sách đã follow
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            item {
                 TitleSmallCustom("Đã follow")
-                repeat(5) {
-                    PersonItem(
-                        name = "Hứa Huỳnh Anh",
-                        isFollowed = true,
-                        onMessageClick = { /* ... */ },
-                        onUnfollowClick = { /* ... */ }
-                    )
-                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            items(following) { follower ->
+                PersonItem(
+                    name = follower.username,
+                    avatar = follower.avatar,
+                    nickname = null,
+                    isFollowed = true,
+                    onUnfollowClick = {
+                        Log.d("FollowersScreen", "Unfollow clicked for user: ${follower.username}")
+                        Log.d("FollowersScreen", "User ID: ${follower.userId}")
+                        followerViewModel.unfollow(follower.userId)
+                    }
+                )
+            }
 
-            // Gợi ý cho bạn
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -78,18 +80,23 @@ fun FollowersScreen(navController: NavController) {
                     TitleSmallCustom("Gợi ý cho bạn")
                     Text("Xem tất cả", color = Color.Blue)
                 }
-                repeat(3) {
-                    PersonItem(
-                        name = "Trịnh Quyết Chiến",
-                        isFollowed = false,
-                        onFollowClick = { /* ... */ }
-                    )
-                }
             }
 
-            Spacer(modifier = Modifier.height(80.dp)) // Tránh bị che bởi bottom nav
+            items(peopleList) { person ->
+                PersonItem(
+                    name = person.username,
+                    avatar = person.avatar,
+                    nickname = null,
+                    isFollowed = false,
+                    onFollowClick = {
+                        followerViewModel.follow(person.userId)
+                    }
+                )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
+            }
         }
     }
 }
-
-

@@ -17,7 +17,9 @@ import retrofit2.http.Path
 interface PostApiService {
 
     @GET("post/all")
-    suspend fun getAllPostsForHome(): Response<List<PostWithStatsResponse>>
+    suspend fun getAllPostsForHome(
+        @Header("Authorization") authorization: String)
+    : Response<List<PostWithStatsResponse>>
 
     @POST("post/create")
     suspend fun createPost(

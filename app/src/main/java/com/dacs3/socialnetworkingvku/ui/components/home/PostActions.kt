@@ -12,9 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.ui.graphics.Color
 @Composable
 fun PostActions(
+    isLiked: Boolean,
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
     onShareClick: () -> Unit = {}
@@ -25,18 +27,36 @@ fun PostActions(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 6.dp)
     ) {
-        PostActionButton(
-            icon = Icons.Default.FavoriteBorder,
-            text = "Thích",
+        // Like Button — đổi icon và màu nếu đã like
+        TextButton(
             onClick = onLikeClick,
-            modifier = Modifier.weight(1f)
-        )
+            modifier = Modifier.weight(1f).padding(horizontal = 4.dp, vertical = 2.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = "Thích",
+                    modifier = Modifier.size(18.dp),
+                    tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Thích",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (isLiked) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Comment Button
         PostActionButton(
             icon = Icons.Default.ModeComment,
             text = "Bình luận",
             onClick = onCommentClick,
             modifier = Modifier.weight(1f)
         )
+
+        // Share Button
         PostActionButton(
             icon = Icons.Default.Share,
             text = "Chia sẻ",
@@ -45,7 +65,6 @@ fun PostActions(
         )
     }
 }
-
 @Composable
 private fun PostActionButton(
     icon: ImageVector,

@@ -1,6 +1,7 @@
 package com.dacs3.socialnetworkingvku.ui.components.followers
 
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -16,16 +17,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
+import com.dacs3.socialnetworkingvku.R
 
 @Composable
 fun PersonItem(
     name: String,
-    nickname: String? = null, // Cho phép null
+    avatar: String?,
+    nickname: String?,
     isFollowed: Boolean,
     onFollowClick: () -> Unit = {},
     onMessageClick: () -> Unit = {},
     onUnfollowClick: () -> Unit = {},
-    actionIcon: (@Composable (() -> Unit))? = null // Thêm icon tuỳ chỉnh (như chuông tắt)
+    actionIcon: (@Composable (() -> Unit))? = null
 ) {
     Row(
         modifier = Modifier
@@ -33,8 +37,14 @@ fun PersonItem(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar
-        Box(
+        // Avatar từ URL
+        val painter = rememberAsyncImagePainter(
+            model = avatar ?: R.drawable.avatar_default, // fallback ảnh mặc định
+        )
+
+        Image(
+            painter = painter,
+            contentDescription = "Avatar",
             modifier = Modifier
                 .size(50.dp)
                 .clip(CircleShape)
@@ -44,10 +54,8 @@ fun PersonItem(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(name, fontWeight = FontWeight.Bold)
-            if (!nickname.isNullOrEmpty()) {
-                Text(nickname, color = Color.Gray, fontSize = 12.sp)
-            }
+            Text(text = name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            // Thêm mô tả phụ ở đây nếu cần
         }
 
         actionIcon?.invoke() ?: run {
@@ -72,5 +80,6 @@ fun PersonItem(
         }
     }
 }
+
 
 

@@ -5,11 +5,13 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,49 +35,44 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewModel: PostViewModel) {
+fun HomeScreen(
+    viewModel: AuthViewModel,
+    controller: NavController,
+    postViewModel: PostViewModel
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     val user by viewModel.user.collectAsState(initial = User(0, "", "", ""))
     val isSuccess by viewModel.isSuccess
-    val postList by postViewModel.postList.collectAsState()
-    val context = LocalContext.current
+
+    // 🆕 Sử dụng LiveData từ Room để đồng bộ dữ liệu bài viết
+    val postList by postViewModel.getAllPostsFromRoom().observeAsState(initial = emptyList())
+
     val avatarRequest = remember(user.avatar) {
         ImageRequest.Builder(context)
             .data(user.avatar.takeIf { !it.isNullOrBlank() } ?: R.drawable.avatar_default)
-            .size(256) // hoặc .size(128, 128) nếu bạn muốn cụ thể hơn
+            .size(256)
             .crossfade(true)
             .build()
     }
 
-    val isLikeLoad by postViewModel.isLikeLoading
-    val isLiked by postViewModel.isLikeSuccess
-
-    val isCommentLoad by postViewModel.isCommentLoading
-    val isCommented by postViewModel.isCommentSuccess
-
-    LaunchedEffect (Unit)
-    {
-
-        postViewModel.getAllPosts()
-        delay(500)
-        postViewModel.getAllPostsFromRoomData()
+    LaunchedEffect(Unit) {
+        postViewModel.getAllPosts() // Lấy từ API nếu chưa có dữ liệu trong Room
         postViewModel.resetState()
-
     }
-    Log.d("HomeScreen", "user: $user")
 
-
-    // Khi logout thành công, điều hướng về login
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
             viewModel.resetStates()
             controller.navigate("login") {
                 popUpTo("home") { inclusive = true }
             }
-            viewModel.resetStates()
         }
     }
+
+    val listState = rememberLazyListState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -179,39 +176,32 @@ fun HomeScreen(viewModel: AuthViewModel, controller: NavController, postViewMode
                     Text(
                         text = "Bạn đang nghĩ gì?",
                         modifier = Modifier.clickable {
-                            controller.navigate("create_post"){
+                            controller.navigate("create_post") {
                                 popUpTo("home") { inclusive = false }
                             }
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(postList) { post ->
                         PostItem(
                             post = post,
-                            onLikeClick = {
-                                if (!isLikeLoad) {
-                                    postViewModel.likePost(post.postId)
-                                    postViewModel.resetState()// Đảm bảo không gọi khi đang trong quá trình tải
-                                }
+                            onLikeClick = { postId, isLiked ->
+                                postViewModel.likePost(postId, isLiked)
                             },
-                            onCommentClick = {
-                                if (!isCommentLoad) {
-                                    Log.d("HomeScreen", "onCommentClick: ${post.postId}")
-                                    controller.navigate("comments/${post.postId}")
-                                    postViewModel.resetState()
-                                }
+                            onCommentClick = { postId ->
+                                controller.navigate("comments/$postId")
                             },
-                            onShareClick = { }
+                            onShareClick = { /* TODO */ }
                         )
                     }
                 }

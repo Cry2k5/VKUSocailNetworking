@@ -3,6 +3,7 @@ package com.dacs3.socialnetworkingvku.repository
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.lifecycle.LiveData
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
@@ -16,6 +17,7 @@ import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 import com.dacs3.socialnetworkingvku.roomdata.post.toEntity
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.PostApiService
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.io.ByteArrayOutputStream
 
@@ -26,20 +28,25 @@ class PostRepository(
     ) {
     suspend fun getAllPostsWithStats(): Result<List<PostWithStatsResponse>> {
         return try {
-            val response = postApiService.getAllPostsForHome()
+            val tokenDataStore = tokenStoreManager.accessTokenFlow.first()
+            val token = "Bearer $tokenDataStore"
+            Log.d("PostRepository", "Token to get post:"+ token)
+            val response = postApiService.getAllPostsForHome(token)
             if (response.isSuccessful) {
                 Log.d("PostRepository", "Response body: ${response.body()}")
                 val posts = response.body()
                 if (posts != null) {
                     // Xóa tất cả các bài viết trong Room trước khi lưu mới
+                    Log.d("PostRepository", "Clearing posts from DB")
                     postDao.clearPosts()
 
+                    Log.d("PostRepository", "Posts to save: $posts")
                     // Chuyển đổi các bài viết thành PostEntity và lưu vào Room
                     val entities = posts.map { it.toEntity() }
                     postDao.insertAll(entities)
 
-                    Log.d("PostRepository", "Posts saved to DB: $entities")
-
+                    Log.d("PostRepository", "Posts saved to DB")
+                    Log.d("PostRepository", "Posts from DB: $entities")
                     // Trả về kết quả thành công
                     Result.success(posts)
                 } else {
@@ -88,6 +95,10 @@ class PostRepository(
         }
     }
 
+    suspend fun updatePostLikeStatus(postId: Long, isLiked: Boolean, likeCount: Int) {
+        // Cập nhật trạng thái Like và LikeCount vào database
+        postDao.updatePostLikeStatus(postId, isLiked, likeCount)
+    }
     suspend fun likePost(postId: Long): Result<ApiResponse> {
         return try {
             val tokenDataStore = tokenStoreManager.accessTokenFlow.first()
@@ -220,9 +231,10 @@ class PostRepository(
     }
 
 
-    suspend fun getAllPostsFromRoom(): List<PostEntity> {
+    fun getAllPostsFromRoom(): LiveData<List<PostEntity>> {
         return postDao.getAllPosts()
     }
+
     // Xóa tất cả bài đăng trong Room
     suspend fun clearPostsFromRoom() {
         postDao.clearPosts()

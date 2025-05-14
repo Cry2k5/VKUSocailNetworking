@@ -1,9 +1,11 @@
 package com.dacs3.socialnetworkingvku.roomdata.post
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PostDao {
@@ -13,9 +15,12 @@ interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(posts: List<PostEntity>)
 
-    // Phương thức lấy tất cả bài viết
     @Query("SELECT * FROM posts ORDER BY createdAt DESC")
-    suspend fun getAllPosts(): List<PostEntity>
+    fun getAllPosts(): LiveData<List<PostEntity>>
+
+
+    @Query("UPDATE posts SET isLiked = :isLiked, likeCount = :likeCount WHERE postId = :postId")
+    suspend fun updatePostLikeStatus(postId: Long, isLiked: Boolean, likeCount: Int)
 
     // Phương thức xóa tất cả bài viết
     @Query("DELETE FROM posts")

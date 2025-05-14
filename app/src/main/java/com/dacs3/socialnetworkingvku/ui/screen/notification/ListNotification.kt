@@ -62,8 +62,9 @@ fun ListNotification(
                 val isComment = index > 3
                 PersonItem(
                     name = if (isComment) "Trịnh Quyết Chiến đã bình luận ảnh của bạn" else "Trịnh Quyết Chiến đã theo dõi bạn",
+                    avatar = "",
                     isFollowed = false,
-                    nickname = null,
+                    nickname = "null",
                     actionIcon = {
                         IconButton(onClick = { /* tắt thông báo */ }) {
                             Icon(

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.dacs3.socialnetworkingvku.roomdata.post.PostDao
 import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 
-@Database(entities = [PostEntity::class], version = 1)
+@Database(entities = [PostEntity::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun postDao(): PostDao
 
@@ -21,7 +21,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "vku_social_networking_db"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

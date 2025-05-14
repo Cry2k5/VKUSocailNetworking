@@ -42,6 +42,7 @@ fun NotificationScreen(navController: NavController) {
 
             PersonItem(
                 name = "Trịnh Quyết Chiến đã theo dõi bạn",
+                avatar = "",
                 isFollowed = false,
                 nickname = null,
                 actionIcon = {
@@ -57,6 +58,7 @@ fun NotificationScreen(navController: NavController) {
 
             PersonItem(
                 name = "Trịnh Quyết Chiến đã bình luận ảnh của bạn",
+                avatar = "",
                 isFollowed = false,
                 nickname = null,
                 actionIcon = {
@@ -76,6 +78,7 @@ fun NotificationScreen(navController: NavController) {
             repeat(5) {
                 PersonItem(
                     name = "Trịnh Quyết Chiến đã bình luận ảnh của bạn",
+                    avatar = "",
                     isFollowed = false,
                     nickname = null,
                     actionIcon = {

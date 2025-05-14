@@ -5,13 +5,10 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import com.dacs3.socialnetworkingvku.repository.PostRepository
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.dacs3.socialnetworkingvku.data.post.requests.PostRequest
 import com.dacs3.socialnetworkingvku.data.post.response.CommentResponse
+import com.dacs3.socialnetworkingvku.repository.PostRepository
 import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,12 +17,14 @@ import kotlinx.coroutines.launch
 
 class PostViewModel(private val repository: PostRepository) : ViewModel() {
 
+    // Upload
     private val _uploadState = MutableStateFlow(UploadState.Idle)
     val uploadState: StateFlow<UploadState> = _uploadState.asStateFlow()
 
     private val _uploadedImageUrl = mutableStateOf<String?>(null)
     val uploadedImageUrl: State<String?> = _uploadedImageUrl
 
+    // Loading + Error + Success
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> get() = _isLoading
 
@@ -33,65 +32,52 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
     val isSuccess: State<Boolean> get() = _isSuccess
 
     private val _errorMessage = mutableStateOf<String?>(null)
-    val errorMessage: State<String?> get() = _errorMessage
+    val errorMessage: State<String?> = _errorMessage
 
-    private val _isDataLoaded = mutableStateOf(true)
-    val isDataLoaded: State<Boolean> get() = _isDataLoaded
-
+    // Post list from Room
     private val _postList = MutableStateFlow<List<PostEntity>>(emptyList())
-    val postList: StateFlow<List<PostEntity>> = _postList
+    val postList: StateFlow<List<PostEntity>> = _postList.asStateFlow()
 
-    private val _isLikeLoading = mutableStateOf(false)
-    val isLikeLoading: State<Boolean> get() = _isLikeLoading
-    private val _isCommentLoading = mutableStateOf(false)
-    val isCommentLoading: State<Boolean> get() = _isCommentLoading
-
-    private val _isLikeSuccess = mutableStateOf(false)
-    val isLikeSuccess: State<Boolean> get() = _isLikeSuccess
+    // Comment state
+    private val _comments = MutableLiveData<Result<List<CommentResponse>>>()
+    val comments: LiveData<Result<List<CommentResponse>>> = _comments
 
     private val _isCommentSuccess = mutableStateOf(false)
     val isCommentSuccess: State<Boolean> get() = _isCommentSuccess
 
+    private val _isCommentLoading = mutableStateOf(false)
+    val isCommentLoading: State<Boolean> get() = _isCommentLoading
 
-    private val _comments = MutableLiveData<Result<List<CommentResponse>>>()
-    val comments: LiveData<Result<List<CommentResponse>>> = _comments
-
+    // Call API and store into Room
     fun getAllPosts() {
         _isLoading.value = true
         _errorMessage.value = null
         _isSuccess.value = false
 
         viewModelScope.launch {
-            Log.d("PostViewModel", "Fetching posts...")
-
             val result = repository.getAllPostsWithStats()
-
             _isLoading.value = false
 
             if (result.isSuccess) {
                 _isSuccess.value = true
-                _isDataLoaded.value = true
+                observePostsFromRoomData() // Lắng nghe Room
             } else {
-                _errorMessage.value =
-                    result.exceptionOrNull()?.message ?: "Lấy danh sách bài viết thất bại"
+                _errorMessage.value = result.exceptionOrNull()?.message ?: "Lỗi khi tải bài viết"
             }
         }
     }
 
-    // Lấy dữ liệu bài viết từ Room
-    fun getAllPostsFromRoomData() {
-        viewModelScope.launch {
-            // Lấy dữ liệu từ Room
-            val data = repository.getAllPostsFromRoom()
-
-            // Log dữ liệu từ Room
-            Log.d("PostViewModel", "Loaded from Room: $data")
-
-            // Cập nhật dữ liệu vào _postList
-            _postList.value = data
+    // Room sẽ cập nhật dữ liệu qua LiveData
+    fun observePostsFromRoomData() {
+        repository.getAllPostsFromRoom().observeForever { posts ->
+            _postList.value = posts
         }
     }
+    fun getAllPostsFromRoom(): LiveData<List<PostEntity>> {
+        return repository.getAllPostsFromRoom()
+    }
 
+    // Upload ảnh lên Cloudinary
     fun uploadImage(imageUri: Uri, context: Context) {
         viewModelScope.launch {
             _uploadState.value = UploadState.Loading
@@ -105,75 +91,63 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
         }
     }
 
+    // Gửi bài viết mới
     fun createPost(content: String, imageUrl: String?) {
         _isLoading.value = true
         _errorMessage.value = null
         _isSuccess.value = false
+
         viewModelScope.launch {
             try {
-                Log.d("PostViewModel", "Creating post...")
                 val postRequest = PostRequest(content, imageUrl)
                 repository.createPost(postRequest)
-                _isLoading.value = false
                 _isSuccess.value = true
-            } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Có lỗi xảy ra khi tạo bài viết"
-            }
-        }
-    }
-
-    fun likePost(postId: Long) {
-        _isLikeLoading.value = true
-        _errorMessage.value = null
-        _isLikeSuccess.value = false
-
-        viewModelScope.launch {
-            try {
-                Log.d("PostViewModel", "Starting to like post with ID: $postId")
-                val result = repository.likePost(postId)
-                _isLikeLoading.value = false
-
-                if (result.isSuccess) {
-                    _isLikeSuccess.value = true
-                    Log.d("PostViewModel", "Successfully liked post with ID: $postId")
-                } else {
-                    _errorMessage.value =
-                        result.exceptionOrNull()?.message ?: "Error while liking the post."
-                    Log.e(
-                        "PostViewModel",
-                        "Failed to like post with ID: $postId",
-                        result.exceptionOrNull()
-                    )
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Có lỗi xảy ra khi like bài viết"
                 _isLoading.value = false
-                Log.e("PostViewModel", "Error liking post with ID: $postId", e)
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Lỗi khi tạo bài viết"
+                _isLoading.value = false
             }
         }
     }
 
+    // Like / Unlike bài viết
+    fun likePost(postId: Long, isCurrentlyLiked: Boolean) {
+        viewModelScope.launch {
+            val result = repository.likePost(postId)
+            if (result.isSuccess) {
+                val post = _postList.value.find { it.postId == postId }
+                if (post != null) {
+                    val newCount = if (isCurrentlyLiked) post.likeCount - 1 else post.likeCount + 1
+                    repository.updatePostLikeStatus(postId, !isCurrentlyLiked, newCount)
+                }
+            }
+        }
+    }
+
+    // Lấy danh sách bình luận
     fun getCommentsForPost(postId: Long) {
-        _isLoading.value = true
+        _isCommentLoading.value = true
         _errorMessage.value = null
         _isCommentSuccess.value = false
 
         viewModelScope.launch {
             try {
                 val result = repository.getCommentsForPost(postId)
-                _isLoading.value = false
+                _isCommentLoading.value = false
                 if (result.isSuccess) {
                     _comments.value = result
+                    _isCommentSuccess.value = true
                 } else {
-                    _errorMessage.value =
-                        result.exceptionOrNull()?.message ?: "Lấy danh sách bình luận thất bại"
+                    _errorMessage.value = result.exceptionOrNull()?.message ?: "Không lấy được bình luận"
                 }
-
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Có lỗi xảy ra khi lấy danh sách bình luận"
+                _errorMessage.value = e.message ?: "Lỗi khi lấy bình luận"
+                _isCommentLoading.value = false
             }
         }
     }
+
+    // Gửi bình luận mới
     fun commentPost(postId: Long, content: String) {
         _isLoading.value = true
         _errorMessage.value = null
@@ -181,40 +155,32 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
 
         viewModelScope.launch {
             try {
-                Log.d("PostViewModel", "Creating comment for post... PostId: $postId, Content: $content")
                 val result = repository.commentPost(postId, content)
-
-                if (result.isSuccess) {
-                    _isCommentSuccess.value = true
-                    _isLoading.value = false
-                } else {
+                _isLoading.value = false
+                _isCommentSuccess.value = result.isSuccess
+                if (!result.isSuccess) {
                     _errorMessage.value = result.exceptionOrNull()?.message ?: "Không thể tạo bình luận"
-                    _isLoading.value = false
                 }
             } catch (e: Exception) {
-                Log.e("PostViewModel", "Error creating comment", e)
-                _errorMessage.value = e.message ?: "Có lỗi xảy ra khi tạo bình luận"
+                _errorMessage.value = e.message ?: "Lỗi khi tạo bình luận"
                 _isLoading.value = false
             }
         }
     }
+
     fun resetState() {
-        _isCommentSuccess.value = false
         _uploadState.value = UploadState.Idle
         _isLoading.value = false
         _isSuccess.value = false
         _errorMessage.value = null
-        _isDataLoaded.value = false // Đặt lại cờ sau khi dữ liệu đã được tải
-        _isLikeLoading.value = false
-        _isCommentLoading.value = false
-        _isLikeSuccess.value = false
         _isCommentSuccess.value = false
         _comments.value = Result.success(emptyList())
     }
 }
+
 enum class UploadState {
-    Idle,      // Chưa làm gì
-    Loading,   // Đang upload
-    Success,   // Upload thành công
-    Error      // Upload thất bại
+    Idle,
+    Loading,
+    Success,
+    Error
 }
