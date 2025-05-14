@@ -43,12 +43,11 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
     val user by viewModel.user.collectAsState(initial = User(0, "", "", ""))
     val isSuccess by viewModel.isSuccess
-
-    // 🆕 Sử dụng LiveData từ Room để đồng bộ dữ liệu bài viết
-    val postList by postViewModel.getAllPostsFromRoom().observeAsState(initial = emptyList())
+    val isLikeLoad by postViewModel.isLikeLoading
+    val isCommentLoad by postViewModel.isCommentLoading
+    val postsForScreen by postViewModel.postListNoRoomData.observeAsState(emptyList())
 
     val avatarRequest = remember(user.avatar) {
         ImageRequest.Builder(context)
@@ -57,10 +56,21 @@ fun HomeScreen(
             .crossfade(true)
             .build()
     }
+    // Đảo ngược danh sách bài viết để hiển thị từ dưới lên
+    val reversedPostsForScreen = postsForScreen.reversed()
+    // Sử dụng LazyListState để giữ vị trí cuộn
+    val lazyListState = rememberLazyListState()
+//    LaunchedEffect(postsForScreen) {
+//        postViewModel.getPostsForHomeScreen()
+//        Log.d("HomeScreen", postsForScreen.toString())
+//        postViewModel.resetState()
+//    }
 
     LaunchedEffect(Unit) {
-        postViewModel.getAllPosts() // Lấy từ API nếu chưa có dữ liệu trong Room
+        postViewModel.getPostsForHomeScreen()
+        Log.d("HomeScreen", postsForScreen.toString())
         postViewModel.resetState()
+
     }
 
     LaunchedEffect(isSuccess) {
@@ -71,8 +81,6 @@ fun HomeScreen(
             }
         }
     }
-
-    val listState = rememberLazyListState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -188,18 +196,28 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyColumn(
-                    state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    state = lazyListState
                 ) {
-                    items(postList) { post ->
+                    items(reversedPostsForScreen) { postForScreen ->
                         PostItem(
-                            post = post,
+                            post = postForScreen,
                             onLikeClick = { postId, isLiked ->
-                                postViewModel.likePost(postId, isLiked)
+                                if (!isLikeLoad) {  // Kiểm tra nếu chưa tải like
+                                    postViewModel.likePost(postForScreen.post.post_id)
+                                    postViewModel.resetStateForLike(resetPosts = false) // Reset state nếu cần
+                                }
                             },
                             onCommentClick = { postId ->
-                                controller.navigate("comments/$postId")
+                                if (!isCommentLoad) {
+                                    Log.d(
+                                        "HomeScreen",
+                                        "onCommentClick: ${postForScreen.post.post_id}"
+                                    )
+                                    controller.navigate("comments/${postForScreen.post.post_id}")
+                                    postViewModel.resetState()
+                                }
                             },
                             onShareClick = { /* TODO */ }
                         )

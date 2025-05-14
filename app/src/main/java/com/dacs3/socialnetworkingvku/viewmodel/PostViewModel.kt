@@ -8,6 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.*
 import com.dacs3.socialnetworkingvku.data.post.requests.PostRequest
 import com.dacs3.socialnetworkingvku.data.post.response.CommentResponse
+import com.dacs3.socialnetworkingvku.data.post.response.PostWithStatsResponse
+import com.dacs3.socialnetworkingvku.data.user.UserFollowingDto
 import com.dacs3.socialnetworkingvku.repository.PostRepository
 import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +50,33 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
     private val _isCommentLoading = mutableStateOf(false)
     val isCommentLoading: State<Boolean> get() = _isCommentLoading
 
+    private val _isLikeLoading = mutableStateOf(false)
+    val isLikeLoading: State<Boolean> get() = _isLikeLoading
+
+    private val _isLikeSuccess = mutableStateOf(false)
+    val isLikeSuccess: State<Boolean> get() = _isLikeSuccess
+
+    private val _postListNoRoomData = MutableLiveData<List<PostWithStatsResponse>>()
+    val postListNoRoomData: LiveData<List<PostWithStatsResponse>> = _postListNoRoomData
+
+
+    fun getPostsForHomeScreen() {
+        _isLoading.value = true  // Bắt đầu tải dữ liệu
+        viewModelScope.launch {
+            try {
+                val result = repository.getPostForHomeScreen()
+                if (result.isSuccess) {
+                    _postListNoRoomData.value = result.getOrThrow()  // Cập nhật dữ liệu thành công
+                } else {
+                    _errorMessage.value = "Không thể tải bài viết"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Lỗi khi tải dữ liệu: ${e.message}"  // Xử lý lỗi
+            } finally {
+                _isLoading.value = false  // Kết thúc tải dữ liệu
+            }
+        }
+    }
     // Call API and store into Room
     fun getAllPosts() {
         _isLoading.value = true
@@ -110,19 +139,36 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
         }
     }
 
-    // Like / Unlike bài viết
-    fun likePost(postId: Long, isCurrentlyLiked: Boolean) {
+    fun likePost(postId: Long) {
         viewModelScope.launch {
+            // Lấy danh sách bài viết hiện tại từ _postListNoRoomData
+            val currentPosts = _postListNoRoomData.value?.toMutableList() ?: mutableListOf()
+
+            // Gọi API để like/unlike bài viết
             val result = repository.likePost(postId)
+
+            // Kiểm tra kết quả từ API
             if (result.isSuccess) {
-                val post = _postList.value.find { it.postId == postId }
-                if (post != null) {
-                    val newCount = if (isCurrentlyLiked) post.likeCount - 1 else post.likeCount + 1
-                    repository.updatePostLikeStatus(postId, !isCurrentlyLiked, newCount)
+                // Tìm bài viết cần thay đổi trạng thái
+                val post = currentPosts.find { it.post.post_id == postId }
+                post?.let {
+                    // Cập nhật trạng thái like và số lượt like
+                    it.isLiked = !it.isLiked
+                    it.likeCount += if (it.isLiked) 1 else -1
                 }
+
+                // Cập nhật lại _postListNoRoomData để UI nhận thông tin mới
+                _postListNoRoomData.value = currentPosts
+            } else {
+                // Xử lý trường hợp thất bại (thông báo lỗi cho người dùng nếu cần)
+                val errorMessage = result.exceptionOrNull()?.message ?: "Unknown error"
+                Log.e("PostViewModel", "Error: $errorMessage")
+
+                // Bạn có thể dùng LiveData để hiển thị thông báo lỗi cho UI nếu cần
             }
         }
     }
+
 
     // Lấy danh sách bình luận
     fun getCommentsForPost(postId: Long) {
@@ -175,7 +221,28 @@ class PostViewModel(private val repository: PostRepository) : ViewModel() {
         _errorMessage.value = null
         _isCommentSuccess.value = false
         _comments.value = Result.success(emptyList())
+        _isCommentLoading.value = false
+        _isLikeLoading.value = false
+        _isLikeSuccess.value = false
     }
+
+    fun resetStateForLike(resetPosts: Boolean = false) {
+        _uploadState.value = UploadState.Idle
+        _isLoading.value = false
+        _isSuccess.value = false
+        _errorMessage.value = null
+        _isCommentSuccess.value = false
+        _comments.value = Result.success(emptyList())
+        _isCommentLoading.value = false
+        _isLikeLoading.value = false
+        _isLikeSuccess.value = false
+
+        // Reset danh sách bài viết chỉ khi cần thiết
+        if (resetPosts) {
+            _postListNoRoomData.value = emptyList()
+        }
+    }
+
 }
 
 enum class UploadState {

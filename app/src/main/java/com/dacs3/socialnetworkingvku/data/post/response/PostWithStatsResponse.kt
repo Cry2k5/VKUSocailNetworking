@@ -1,6 +1,7 @@
 package com.dacs3.socialnetworkingvku.data.post.response
 
 import com.dacs3.socialnetworkingvku.data.post.requests.PostGetRequest
+import com.dacs3.socialnetworkingvku.data.user.User
 import com.google.gson.annotations.SerializedName
 
 data class PostWithStatsResponse(
@@ -8,11 +9,11 @@ data class PostWithStatsResponse(
     val post: PostGetRequest,
 
     @SerializedName("likeCount")
-    val likeCount: Int,
+    var likeCount: Int,
 
     @SerializedName("commentCount")
     val commentCount: Int,
 
     @SerializedName("isLiked")
-    val isLiked:Boolean
+    var isLiked:Boolean
 )

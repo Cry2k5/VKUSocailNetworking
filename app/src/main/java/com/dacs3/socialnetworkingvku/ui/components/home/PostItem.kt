@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dacs3.socialnetworkingvku.R
+import com.dacs3.socialnetworkingvku.data.post.response.PostWithStatsResponse
 import com.dacs3.socialnetworkingvku.roomdata.post.PostEntity
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
@@ -34,20 +35,26 @@ import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 
 @Composable
 fun PostItem(
-    post: PostEntity,
-    onLikeClick: (Long, Boolean) -> Unit = { _, _ -> },
+    post: PostWithStatsResponse,
+    onLikeClick: (Long, Boolean) -> Unit = {_,_ ->},
     onCommentClick: (Long) -> Unit = {},
     onShareClick: () -> Unit = {}
 ) {
-    // State cục bộ cho hiệu ứng UI mượt mà không cần reload toàn bộ
     val likeState = remember { mutableStateOf(post.isLiked) }
     val likeCountState = remember { mutableStateOf(post.likeCount) }
     val commentCountState = remember { mutableStateOf(post.commentCount) }
 
+
+    val onLikeButtonClick = {
+        val newState = !likeState.value
+        likeState.value = newState
+        likeCountState.value += if (newState) 1 else -1
+        onLikeClick(post.post.post_id, likeState.value) // Gửi trạng thái mới đến ViewModel hoặc API
+    }
     Column(modifier = Modifier.padding(16.dp)) {
-        PostHeader(username = post.userEmail, date = post.createdAt, imgAvatar = post.userAvatar)
+        PostHeader(username = post.post.userdto.name, date = post.post.create_at, imgAvatar = post.post.userdto.avatar)
         Spacer(modifier = Modifier.height(8.dp))
-        PostContent(content = post.content, imgContent = post.image)
+        PostContent(content = post.post.content, imgContent = post.post.image)
         Spacer(modifier = Modifier.height(8.dp))
 
         // Hiển thị Like / Comment count
@@ -62,14 +69,11 @@ fun PostItem(
         PostActions(
             isLiked = likeState.value,
             onLikeClick = {
-                val newState = !likeState.value
-                likeState.value = newState
-                likeCountState.value += if (newState) 1 else -1
-                onLikeClick(post.postId, likeState.value) // truyền trạng thái trước khi API gọi xong
+                onLikeButtonClick()// truyền trạng thái trước khi API gọi xong
             },
             onCommentClick = {
                 commentCountState.value += 1
-                onCommentClick(post.postId)
+                onCommentClick(post.post.post_id)
             },
             onShareClick = onShareClick
         )

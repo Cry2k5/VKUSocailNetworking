@@ -156,7 +156,6 @@ class AuthRepository(
             if (response.isSuccessful) {
                 val apiResponse = response.body()
                 if (apiResponse != null) {
-
                     tokenStoreManager.clearAll()
                     Result.success(apiResponse)
                 } else {

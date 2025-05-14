@@ -74,6 +74,7 @@ fun CreatePostScreen(
     // Khi post thành công thì chuyển trang
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
+            postViewModel.resetState()
             controller.navigate("home") {
                 popUpTo("create_post") { inclusive = true }
             }

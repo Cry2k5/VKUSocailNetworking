@@ -26,6 +26,31 @@ class PostRepository(
     private val postDao: PostDao,
     private val tokenStoreManager: TokenStoreManager
     ) {
+
+    suspend fun getPostForHomeScreen():Result<List<PostWithStatsResponse>>{
+        return try {
+            val token = "Bearer ${tokenStoreManager.accessTokenFlow.first()}"
+            val response = postApiService.getAllPostsForHome(token)
+
+            if (response.isSuccessful) {
+                val followingList = response.body()
+                Log.d("PostRepository", "Response body: $followingList")
+                if (followingList != null) {
+                    Result.success(followingList)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                Result.failure(Exception("Failed to fetch following: ${response.code()}"))
+            }
+
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
+    }
+
+
     suspend fun getAllPostsWithStats(): Result<List<PostWithStatsResponse>> {
         return try {
             val tokenDataStore = tokenStoreManager.accessTokenFlow.first()
@@ -104,7 +129,6 @@ class PostRepository(
             val tokenDataStore = tokenStoreManager.accessTokenFlow.first()
             val token = "Bearer $tokenDataStore"
 
-            // Gọi API bất đồng bộ, Retrofit sẽ tự động xử lý việc này trong nền
             val response = postApiService.likePost(token, postId)
 
             // Kiểm tra phản hồi từ server
@@ -116,16 +140,17 @@ class PostRepository(
                     Result.failure(Exception("Empty response body"))  // Nếu không có body
                 }
             } else {
-                // Nếu không thành công, lấy thông tin chi tiết từ errorBody
+                // Nếu phản hồi không thành công, lấy chi tiết lỗi từ errorBody
                 val errorBody = response.errorBody()?.string() ?: "Unknown error"
                 Result.failure(Exception("Failed to like post: ${response.code()} - $errorBody"))
             }
         } catch (e: Exception) {
-            // Ghi lại lỗi (nếu có) khi gọi API
+            // Ghi lại lỗi nếu có
             Log.e("likePost", "Error liking post with ID: $postId", e)
             Result.failure(e)  // Trả về lỗi nếu có exception
         }
     }
+
 
     suspend fun getCommentsForPost(postId: Long): Result<List<CommentResponse>> {
         return try {
