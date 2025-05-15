@@ -3,9 +3,11 @@ package com.dacs3.socialnetworkingvku.navigation
 import CreatePostScreen
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.dacs3.socialnetworkingvku.ui.screen.chat.ChatScreen
 import com.dacs3.socialnetworkingvku.ui.screen.chat.MessageScreen
 import com.dacs3.socialnetworkingvku.ui.screen.followers.FollowersScreen
@@ -18,12 +20,13 @@ import com.dacs3.socialnetworkingvku.ui.screen.login_signup.RegisterScreen
 import com.dacs3.socialnetworkingvku.ui.screen.notification.NotificationScreen
 import com.dacs3.socialnetworkingvku.ui.screen.profile.ProfileScreen
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.ChatViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.UserViewModel
 
 @Composable
-fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userViewModel: UserViewModel,context:Context, followerViewModel: FollowerViewModel) {
+fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userViewModel: UserViewModel,context:Context, followerViewModel: FollowerViewModel, chatViewModel: ChatViewModel) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "login") {
@@ -56,12 +59,26 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
 
 
         // NavGraph
-        composable("chat/{userId}/{userName}") { backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId")?.toLongOrNull() ?: return@composable
-            val userName = backStackEntry.arguments?.getString("userName") ?: "Người dùng"
-            ChatScreen(receiverId = userId, receiverName = userName)
-        }
+        composable(
+            route = "chat/{currentUserId}/{receiverId}/{receiverName}",
+            arguments = listOf(
+                navArgument("currentUserId") { type = NavType.LongType },
+                navArgument("receiverId") { type = NavType.LongType },
+                navArgument("receiverName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getLong("currentUserId") ?: 0L
+            val receiverId = backStackEntry.arguments?.getLong("receiverId") ?: 0L
+            val receiverName = backStackEntry.arguments?.getString("receiverName") ?: ""
 
+            ChatScreen(
+                currentUserId = currentUserId,
+                receiverId = receiverId,
+                receiverName = receiverName,
+                chatViewModel = chatViewModel,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
 
     }
 }

@@ -8,12 +8,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.components.SearchBar
 import com.dacs3.socialnetworkingvku.ui.components.TopAppBarHeader
@@ -24,7 +28,9 @@ import com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel
 @Composable
 fun MessageScreen(navController:NavController, followerViewModel:FollowerViewModel) {
     val following by followerViewModel.followingList.observeAsState(emptyList())
-
+    val context = LocalContext.current
+    val tokenStoreManager = remember { TokenStoreManager(context) }
+    val currentUserId by tokenStoreManager.userIdFlow.collectAsState(initial = 0L)
     LaunchedEffect(Unit) {
         followerViewModel.getFollowing()
     }
@@ -53,7 +59,7 @@ fun MessageScreen(navController:NavController, followerViewModel:FollowerViewMod
                         message = "",
                         unreadCount = 9,
                         onClick = {
-                            navController.navigate("chat/${follow.userId}/${follow.username}")
+                            navController.navigate("chat/${currentUserId}/${follow.userId}/${follow.username}")
                         }
                     )
                 }

@@ -7,12 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import com.cloudinary.android.MediaManager
 import com.dacs3.socialnetworkingvku.navigation.AppNavigation
 import com.dacs3.socialnetworkingvku.repository.AuthRepository
+import com.dacs3.socialnetworkingvku.repository.ChatRepository
 import com.dacs3.socialnetworkingvku.repository.FollowerRepository
 import com.dacs3.socialnetworkingvku.repository.PostRepository
 import com.dacs3.socialnetworkingvku.repository.UserRepository
 import com.dacs3.socialnetworkingvku.roomdata.AppDatabase
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.AuthApiService
+import com.dacs3.socialnetworkingvku.testApi.ChatApiService
 import com.dacs3.socialnetworkingvku.testApi.FollowerApiService
 import com.dacs3.socialnetworkingvku.testApi.PostApiService
 import com.dacs3.socialnetworkingvku.testApi.RetrofitClient
@@ -43,7 +45,9 @@ class MainActivity : ComponentActivity() {
         val followerRepository = FollowerRepository(tokenStore, followerApiService)
         val userRepository = UserRepository(userApiService, tokenStore)
         val userViewModel = UserViewModel(userRepository, tokenStore)
-
+        val chatApiService = retrofit.create(ChatApiService::class.java)
+        val chatRepository = ChatRepository(chatApiService,tokenStore)
+        val chatViewModel = com.dacs3.socialnetworkingvku.viewmodel.ChatViewModel(chatRepository)
         val followerViewModel = com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel(followerRepository)
         val context = this
         val config = mapOf(
@@ -54,7 +58,13 @@ class MainActivity : ComponentActivity() {
         MediaManager.init(this, config)
         setContent {
             VKUSocialNetworkingTheme {
-                AppNavigation(viewModel = authViewModel, postViewModel = postViewModel, userViewModel = userViewModel,context = context, followerViewModel = followerViewModel)
+                AppNavigation(
+                    viewModel = authViewModel,
+                    postViewModel = postViewModel,
+                    userViewModel = userViewModel,
+                    context = context,
+                    followerViewModel = followerViewModel,
+                    chatViewModel = chatViewModel)
             }
         }
     }

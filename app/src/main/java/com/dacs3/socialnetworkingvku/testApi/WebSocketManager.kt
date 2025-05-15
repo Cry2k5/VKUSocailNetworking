@@ -1,7 +1,7 @@
 package com.dacs3.socialnetworkingvku.websocket
 
 import android.util.Log
-import com.dacs3.socialnetworkingvku.data.MessageDTO
+import com.dacs3.socialnetworkingvku.data.message.MessageDTO
 import com.google.gson.Gson
 import okhttp3.*
 
@@ -50,7 +50,7 @@ class WebSocketManager(
     }
 
     fun disconnect() {
-        webSocket?.close(1000, null)
+        webSocket?.close(1000, "User disconnected")
         webSocket = null
     }
 }
