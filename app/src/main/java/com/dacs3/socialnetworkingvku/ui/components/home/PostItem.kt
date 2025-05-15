@@ -52,7 +52,7 @@ fun PostItem(
         onLikeClick(post.post.post_id, likeState.value) // Gửi trạng thái mới đến ViewModel hoặc API
     }
     Column(modifier = Modifier.padding(16.dp)) {
-        PostHeader(username = post.post.userdto.name, date = post.post.create_at, imgAvatar = post.post.userdto.avatar)
+        PostHeader(username = post.post.userdto.email, date = post.post.create_at, imgAvatar = post.post.userdto.avatar)
         Spacer(modifier = Modifier.height(8.dp))
         PostContent(content = post.post.content, imgContent = post.post.image)
         Spacer(modifier = Modifier.height(8.dp))

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,12 +27,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dacs3.socialnetworkingvku.R
-import com.dacs3.socialnetworkingvku.data.Message
+import com.dacs3.socialnetworkingvku.data.MessageDTO
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable
-fun MessageBubble(message: Message) {
+fun MessageBubble(message: MessageDTO) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (message.isFromFriend) Arrangement.Start else Arrangement.End
@@ -45,19 +46,39 @@ fun MessageBubble(message: Message) {
                 .padding(12.dp)
         ) {
             Text(
-                text = message.content,
+                text = message.content?:"",
                 color = if (message.isFromFriend) Color.Black else Color.White
             )
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MessageBubblePreview() {
     VKUSocialNetworkingTheme {
-        MessageBubble(
-            Message("Hey Chiến!", true),
-
-        )
+        Column(modifier = Modifier.padding(16.dp)) {
+            MessageBubble(
+                message = MessageDTO(
+                    senderId = 1,
+                    receiverId = 2,
+                    content = "Hello from friend",
+                    image = "",
+                    video = "",
+                    isFromFriend = true
+                )
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            MessageBubble(
+                message = MessageDTO(
+                    senderId = 2,
+                    receiverId = 1,
+                    content = "Hi! This is your reply",
+                    isFromFriend = false,
+                    image = "",
+                    video = "",
+                )
+            )
+        }
     }
 }

@@ -42,7 +42,7 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
             CreatePostScreen(controller = navController, postViewModel = postViewModel, context = context)
         }
         composable("followers") { FollowersScreen(navController = navController, followerViewModel = followerViewModel) }
-        composable("chat") { MessageScreen(navController = navController) }
+        composable("chat") { MessageScreen(navController = navController, followerViewModel = followerViewModel) }
         composable("notification") { NotificationScreen(navController = navController) }
         composable("profile") { ProfileScreen(navController = navController, userViewModel =  userViewModel) }
 
@@ -52,6 +52,14 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
             postId?.let {
                 PostCommentScreen(postId = it, navController = navController, postViewModel = postViewModel)
             }
+        }
+
+
+        // NavGraph
+        composable("chat/{userId}/{userName}") { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")?.toLongOrNull() ?: return@composable
+            val userName = backStackEntry.arguments?.getString("userName") ?: "Người dùng"
+            ChatScreen(receiverId = userId, receiverName = userName)
         }
 
 

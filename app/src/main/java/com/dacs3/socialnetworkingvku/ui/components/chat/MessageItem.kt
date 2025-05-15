@@ -2,6 +2,7 @@ package com.dacs3.socialnetworkingvku.ui.components.chat
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,29 +19,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.dacs3.socialnetworkingvku.R
 
 @Composable
 fun MessageItem(
     name: String,
+    avatar: String,
     message: String,
-    unreadCount: Int
+    unreadCount: Int,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar
-        Image(
-            painter = painterResource(id = R.drawable.demo_image_background), // Thay bằng ảnh thực tế của bạn
+        // Avatar từ URL
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(avatar.ifBlank { R.drawable.avatar_default }) // dùng ảnh mặc định nếu URL rỗng
+                .crossfade(true)
+                .build(),
             contentDescription = null,
             modifier = Modifier
                 .size(50.dp)
@@ -60,24 +70,19 @@ fun MessageItem(
             )
         }
 
-        Box(
-            modifier = Modifier
-                .background(Color.Blue, shape = CircleShape)
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = unreadCount.toString(),
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+        if (unreadCount > 0) {
+            Box(
+                modifier = Modifier
+                    .background(Color.Blue, shape = CircleShape)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = unreadCount.toString(),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun MessageItemPreview() {
-    MessageItem("chien", "Hello, how are you?", 5)
-}
-
