@@ -89,7 +89,6 @@ fun ChatScreen(
                         content = messageText,
                         image = null,
                         video = null,
-                        isFromFriend = false
                     )
                     socketManager.sendMessage(msg)
                     messages.add(msg)
@@ -117,7 +116,7 @@ fun ChatScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { message ->
-                MessageBubble(message)
+                MessageBubble(message, currentUserId?:0L)
             }
         }
     }

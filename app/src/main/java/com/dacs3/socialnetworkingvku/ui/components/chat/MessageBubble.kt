@@ -32,53 +32,25 @@ import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 
 @Composable
-fun MessageBubble(message: MessageDTO) {
+fun MessageBubble(message: MessageDTO, currentUser:Long) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.isFromFriend) Arrangement.Start else Arrangement.End
+        horizontalArrangement = if (message.senderId != currentUser) Arrangement.Start else Arrangement.End
     ) {
         Box(
             modifier = Modifier
                 .background(
-                    color = if (message.isFromFriend) Color(0xFFF0F0F0) else Color(0xFF007AFF),
+                    color = if ( message.senderId != currentUser) Color(0xFFF0F0F0) else Color(0xFF007AFF),
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(12.dp)
         ) {
             Text(
                 text = message.content?:"",
-                color = if (message.isFromFriend) Color.Black else Color.White
+                color = if (message.senderId != currentUser) Color.Black else Color.White
             )
         }
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun MessageBubblePreview() {
-    VKUSocialNetworkingTheme {
-        Column(modifier = Modifier.padding(16.dp)) {
-            MessageBubble(
-                message = MessageDTO(
-                    senderId = 1,
-                    receiverId = 2,
-                    content = "Hello from friend",
-                    image = "",
-                    video = "",
-                    isFromFriend = true
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            MessageBubble(
-                message = MessageDTO(
-                    senderId = 2,
-                    receiverId = 1,
-                    content = "Hi! This is your reply",
-                    isFromFriend = false,
-                    image = "",
-                    video = "",
-                )
-            )
-        }
-    }
-}
+

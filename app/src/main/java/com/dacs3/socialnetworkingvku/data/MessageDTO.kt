@@ -6,6 +6,5 @@ data class MessageDTO(
     val content: String?,  // Nội dung tin nhắn
     val image: String?,  // Đường dẫn đến ảnh đính kèm (có thể null)
     val video: String?, // Đường dẫn đến video đính kèm (có thể null)
-    val isFromFriend: Boolean = true
 
 )
