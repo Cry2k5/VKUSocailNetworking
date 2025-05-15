@@ -7,6 +7,5 @@ fun Message.toMessageDTO(): MessageDTO {
         content = this.content,
         image = this.image,
         video = this.video,
-        createAt = this.createAt
     )
 }

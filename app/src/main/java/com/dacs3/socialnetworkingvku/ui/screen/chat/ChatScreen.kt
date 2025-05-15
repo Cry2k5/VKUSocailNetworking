@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachFile
@@ -37,6 +38,7 @@ import com.dacs3.socialnetworkingvku.viewmodel.ChatViewModel
 import com.dacs3.socialnetworkingvku.websocket.WebSocketManager
 import java.time.LocalDateTime
 import com.dacs3.socialnetworkingvku.data.message.toMessageDTO
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ChatScreen(
@@ -70,9 +72,16 @@ fun ChatScreen(
             chatViewModel.clearMessages(receiverId)
         }
     }
+    val listState = rememberLazyListState()
 
+    val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     val allMessages = (receiverMessages.map { it.toMessageDTO() } + socketMessages)
-        .sortedBy { it.createAt }
+    // Scroll tới cuối mỗi khi có tin nhắn mới
+    LaunchedEffect(allMessages.size) {
+        if (allMessages.isNotEmpty()) {
+            listState.animateScrollToItem(allMessages.size - 1)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -96,7 +105,6 @@ fun ChatScreen(
                         content = messageText,
                         image = null,
                         video = null,
-                        createAt = LocalDateTime.now().toString()
                     )
                     socketManager.sendMessage(newMsg)
                     socketMessages.add(newMsg)
@@ -117,6 +125,7 @@ fun ChatScreen(
         }
     ) { innerPadding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp)
@@ -127,6 +136,7 @@ fun ChatScreen(
                 MessageBubble(message, currentUserId, receiverId)
             }
         }
+
     }
 }
 
