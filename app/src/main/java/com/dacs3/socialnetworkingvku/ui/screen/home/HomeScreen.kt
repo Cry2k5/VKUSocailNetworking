@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
@@ -15,6 +16,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -155,7 +158,15 @@ fun HomeScreen(
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
     ) {
         Scaffold(
-            topBar = { SearchBar(content = "Tìm kiếm...") },
+            topBar = {
+                SearchBar(
+                    content = "Tìm kiếm...",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    hasStatusBarPadding = true)
+            },
             bottomBar = { NavigationBottom(navController = controller) }
         ) { innerPadding ->
             Column(
@@ -181,16 +192,29 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    Text(
-                        text = "Bạn đang nghĩ gì?",
-                        modifier = Modifier.clickable {
-                            controller.navigate("create_post") {
-                                popUpTo("home") { inclusive = false }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 2.dp,
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(Color(0xFF5121C4), Color(0xFF333DA2))
+                                ),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(12.dp)
+                            .clickable {
+                                controller.navigate("create_post") {
+                                    popUpTo("home") { inclusive = false }
+                                }
                             }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    ) {
+                        Text(
+                            text = "Bạn đang nghĩ gì?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

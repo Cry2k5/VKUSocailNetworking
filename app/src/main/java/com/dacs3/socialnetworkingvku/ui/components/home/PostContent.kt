@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -30,10 +31,10 @@ fun PostContent(content: String, imgContent: String?) {
             AsyncImage(
                 model = imgContent,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit, // hoặc ContentScale.Inside nếu muốn an toàn hơn
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .heightIn(max = 300.dp) // giới hạn chiều cao tối đa
             )
             Spacer(modifier = Modifier.height(8.dp))
         }

@@ -1,6 +1,5 @@
 package com.dacs3.socialnetworkingvku.navigation
 
-import CreatePostScreen
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
@@ -11,6 +10,7 @@ import androidx.navigation.navArgument
 import com.dacs3.socialnetworkingvku.ui.screen.chat.ChatScreen
 import com.dacs3.socialnetworkingvku.ui.screen.chat.MessageScreen
 import com.dacs3.socialnetworkingvku.ui.screen.followers.FollowersScreen
+import com.dacs3.socialnetworkingvku.ui.screen.home.CreatePostScreen
 import com.dacs3.socialnetworkingvku.ui.screen.home.HomeScreen
 import com.dacs3.socialnetworkingvku.ui.screen.home.PostCommentScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.AccountVerificationScreen

@@ -38,17 +38,16 @@ fun PersonItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Avatar từ URL
-        val painter = rememberAsyncImagePainter(
-            model = avatar ?: R.drawable.avatar_default, // fallback ảnh mặc định
+        val avatarPainter = rememberAsyncImagePainter(
+            model = avatar.takeIf { !it.isNullOrBlank() } ?: R.drawable.avatar_default
         )
 
         Image(
-            painter = painter,
+            painter = avatarPainter,
             contentDescription = "Avatar",
             modifier = Modifier
                 .size(50.dp)
                 .clip(CircleShape)
-                .background(Color.Gray)
         )
 
         Spacer(modifier = Modifier.width(12.dp))

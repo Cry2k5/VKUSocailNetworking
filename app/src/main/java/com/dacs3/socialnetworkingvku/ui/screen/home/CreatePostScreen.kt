@@ -1,9 +1,6 @@
-import android.app.Activity
+package com.dacs3.socialnetworkingvku.ui.screen.home
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,21 +11,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.UploadState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun CreatePostScreen(
@@ -36,13 +28,10 @@ fun CreatePostScreen(
     controller: NavController,
     context: Context
 ) {
-
-
     var postContent by remember { mutableStateOf(TextFieldValue("")) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val uploadState by postViewModel.uploadState.collectAsState()
     val uploadedImageUrl by postViewModel.uploadedImageUrl
-    val isLoading by postViewModel.isLoading
     val isSuccess by postViewModel.isSuccess
     val errorMessage by postViewModel.errorMessage
 
@@ -50,14 +39,12 @@ fun CreatePostScreen(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri -> selectedImageUri = uri }
     )
+
     // Hiển thị thông báo trạng thái upload
     LaunchedEffect(uploadState) {
         when (uploadState) {
-            UploadState.Loading -> {
-
-            }
+            UploadState.Loading -> Unit
             UploadState.Success -> {
-
                 Toast.makeText(context, "Upload thành công!", Toast.LENGTH_SHORT).show()
                 uploadedImageUrl?.let {
                     postViewModel.createPost(postContent.text, it)
@@ -87,6 +74,7 @@ fun CreatePostScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .systemBarsPadding() // Tránh bị che bởi status bar
             .padding(16.dp)
     ) {
         Text("Tạo bài viết", style = MaterialTheme.typography.headlineSmall)
@@ -118,9 +106,7 @@ fun CreatePostScreen(
             )
         }
 
-        TextButton(
-            onClick = { pickImageLauncher.launch("image/*") }
-        ) {
+        TextButton(onClick = { pickImageLauncher.launch("image/*") }) {
             Icon(Icons.Default.Image, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Thêm ảnh")
@@ -134,7 +120,8 @@ fun CreatePostScreen(
         ) {
             TextButton(onClick = {
                 postViewModel.resetState()
-                controller.popBackStack() }) {
+                controller.popBackStack()
+            }) {
                 Text("Hủy")
             }
 
