@@ -49,6 +49,7 @@ fun Chat_CommentCustom(
     placeholder: String = "Type a comment…",
     leadingIcons: @Composable RowScope.() -> Unit = {}
 ) {
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
