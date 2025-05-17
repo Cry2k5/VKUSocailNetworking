@@ -22,11 +22,13 @@ import com.dacs3.socialnetworkingvku.ui.screen.profile.ProfileScreen
 import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.ChatViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.GeminiViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.PostViewModel
 import com.dacs3.socialnetworkingvku.viewmodel.UserViewModel
 
 @Composable
-fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userViewModel: UserViewModel,context:Context, followerViewModel: FollowerViewModel, chatViewModel: ChatViewModel) {
+fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userViewModel: UserViewModel,context:Context, followerViewModel: FollowerViewModel, chatViewModel: ChatViewModel,
+                  geminiViewModel: GeminiViewModel) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "login") {
@@ -42,7 +44,7 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
         composable("home") { HomeScreen(viewModel = viewModel, controller = navController, postViewModel = postViewModel)}
 
         composable("create_post"){
-            CreatePostScreen(controller = navController, postViewModel = postViewModel, context = context)
+            CreatePostScreen( postViewModel = postViewModel, navController = navController, geminiViewModel = geminiViewModel,context = context)
         }
         composable("followers") { FollowersScreen(navController = navController, followerViewModel = followerViewModel) }
         composable("chat") { MessageScreen(navController = navController, followerViewModel = followerViewModel) }

@@ -69,8 +69,8 @@ fun MessageScreen(navController:NavController, followerViewModel:FollowerViewMod
                     MessageItem(
                         name = follow.username,
                         avatar = follow.avatar?:"",
-                        message = "",
-                        unreadCount = 9,
+                        message = "testlastmessage",
+                        unreadCount = 1,
                         onClick = {
                             navController.navigate("chat/${currentUserId}/${follow.userId}/${follow.username}")
                         }
@@ -80,3 +80,37 @@ fun MessageScreen(navController:NavController, followerViewModel:FollowerViewMod
         }
     }
 }
+
+//data class Follow(
+//    val userId: Long,
+//    val username: String,
+//    val avatar: String?,
+//    val lastMessage: String?,
+//    val lastMessageSenderId: Long?,
+//    val lastMessageTimestamp: Long?
+//)
+
+//import java.time.LocalDateTime
+//import java.time.format.DateTimeFormatter
+//import java.util.Locale
+//
+//fun formatLocalDateTime(datetimeStr: String): String {
+//    val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+//    val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+//
+//    val dateTime = LocalDateTime.parse(datetimeStr, inputFormatter)
+//    return outputFormatter.format(dateTime)
+//}
+//message = buildString {
+//    if (follow.lastMessage != null) {
+//        if (follow.lastMessageSenderId == currentUserId) {
+//            append("Bạn: ")
+//        }
+//        append(follow.lastMessage)
+//        if (follow.lastMessageTimestamp != null) {
+//            append(" ~ ${formatTimestamp(follow.lastMessageTimestamp)}")
+//        }
+//    } else {
+//        append("Chưa có tin nhắn")
+//    }
+//},

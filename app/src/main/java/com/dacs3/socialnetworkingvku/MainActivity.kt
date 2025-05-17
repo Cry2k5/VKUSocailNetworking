@@ -55,6 +55,9 @@ class MainActivity : ComponentActivity() {
             "api_key" to "313163933254635",
             "api_secret" to "wyU6rm-15kXjqEn4ElwG6zwhLaE"
         )
+        val geminiService = RetrofitClient.geminiService
+        val geminiRepository = com.dacs3.socialnetworkingvku.repository.GeminiRepository(geminiService)
+        val geminiViewModel = com.dacs3.socialnetworkingvku.viewmodel.GeminiViewModel(geminiRepository)
         MediaManager.init(this, config)
         setContent {
             VKUSocialNetworkingTheme {
@@ -64,7 +67,8 @@ class MainActivity : ComponentActivity() {
                     userViewModel = userViewModel,
                     context = context,
                     followerViewModel = followerViewModel,
-                    chatViewModel = chatViewModel)
+                    chatViewModel = chatViewModel,
+                    geminiViewModel = geminiViewModel)
             }
         }
     }

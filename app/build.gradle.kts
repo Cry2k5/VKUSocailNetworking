@@ -106,8 +106,4 @@ dependencies {
     implementation("com.cloudinary:cloudinary-android:3.0.2")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
-//    // build.gradle (Module: app)
-//    implementation("org.java-websocket:Java-WebSocket:1.5.2")
-//    implementation("com.github.NaikSoftware:StompProtocolAndroid:1.6.6")
-
 }

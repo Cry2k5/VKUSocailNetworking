@@ -1,5 +1,6 @@
 package com.dacs3.socialnetworkingvku.testApi
 
+import GeminiService
 import android.content.Context
 import com.dacs3.socialnetworkingvku.security.AuthInterceptor
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
@@ -10,9 +11,30 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import kotlinx.coroutines.runBlocking
+import okhttp3.Interceptor
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
+
+    private const val BASE_URL = "https://generativelanguage.googleapis.com/"
+
+    // Để bảo mật hơn, bạn nên lưu trữ API key trong strings.xml hoặc các phương thức bảo mật
+    private const val API_KEY = "AIzaSyATjFGyfwQhGxxngmrxW0kOVmADAOlmEJE"
+
+    // Cấu hình Retrofit với OkHttp Client và Interceptor
+    val geminiService: GeminiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(OkHttpClient.Builder().addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .url(chain.request().url.newBuilder().addQueryParameter("key", API_KEY).build()) // Thêm API key vào URL
+                    .build()
+                chain.proceed(request)
+            }.build())
+            .build()
+            .create(GeminiService::class.java)
+    }
 
     val gson = GsonBuilder().setLenient().create()
     fun provideRetrofit(context: Context, tokenStoreManager: TokenStoreManager): Retrofit {
