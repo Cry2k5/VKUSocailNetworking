@@ -2,6 +2,7 @@ package com.dacs3.socialnetworkingvku.navigation
 
 import MenuScreen
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,8 +39,10 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
 
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
+
     // Khi trạng thái isLoggedIn thay đổi sẽ điều hướng
     LaunchedEffect(isLoggedIn) {
+        Log.d("AppNavigation", "isLoggedIn: $isLoggedIn")
         if (isLoggedIn) {
             navController.navigate("home") {
                 popUpTo("login") { inclusive = true }  // loại bỏ login khỏi back stack

@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignInWithGoogleScreen(
     viewModel: AuthViewModel,
-
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()

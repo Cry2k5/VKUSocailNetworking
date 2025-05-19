@@ -30,7 +30,7 @@ class AuthRepository(
                     )
                     Log.d("LoginScreen", "User: $user")
                     tokenStoreManager.saveUser(user)
-                    tokenStoreManager.saveToken(body.accessToken, body.refreshToken)
+                    tokenStoreManager.saveToken(body.accessToken!!, body.refreshToken!!)
                     Log.d("LoginScreen", body.accessToken)
                     return Result.success(Unit)
                 } else {
@@ -186,35 +186,33 @@ class AuthRepository(
 
     }
 
-    suspend fun loginWithGoogleToken(idToken: String): Result<LoginResponse> {
+    suspend fun loginWithGoogleToken(idToken: String): Result<Unit> {
         return try {
-            Log.d("AuthRepository", "ID Token: $idToken")
             val response = authApiService.loginWithGoogle(idToken)
-
+            Log.d("AuthRepository", "Raw response: $response")
             if (response.isSuccessful) {
-                Log.d("AuthRepository", "Login with Google response: ${response.body()}")
-                val loginResponse = response.body()
+                val body = response.body()
+                Log.d("AuthRepository", "Response body: $body")
 
-                if (loginResponse != null) {
-                    tokenStoreManager.saveToken(
-                        loginResponse.accessToken,
-                        loginResponse.refreshToken
-                    )
+                if (body?.user != null) {
                     val user = User(
-                        id = loginResponse.user.id,
-                        email = loginResponse.user.email,
-                        name = loginResponse.user.name,
-                        avatar = loginResponse.user.avatar
+                        id = body.user.id,
+                        email = body.user.email,
+                        name = body.user.name,
+                        avatar = body.user.avatar
                     )
+                    Log.d("LoginScreen", "User: $user")
                     tokenStoreManager.saveUser(user)
-                    Result.success(loginResponse)
+                    tokenStoreManager.saveToken(body.accessToken!!, body.refreshToken!!)
+                    Log.d("LoginScreen", body.accessToken)
+                    return Result.success(Unit)
                 } else {
-                    Result.failure(Exception("Empty response body"))
+                    Log.e("LoginScreen", "Missing body or user")
+                    return Result.failure(Exception("Missing user info"))
                 }
             } else {
-                Log.d("AuthRepository", "Login with Google failed with code: ${response.code()}")
-                Log.d("AuthRepository", "Error body: ${response.errorBody()?.string()}")
-                Result.failure(Exception("Login with Google failed: ${response.code()}"))
+                Log.e("LoginScreen", "Login failed: ${response.code()}")
+                return Result.failure(Exception("Login failed: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)

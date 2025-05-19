@@ -33,6 +33,7 @@ fun ChangePasswordScreen(navController: NavController) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    var oldPassword by remember { mutableStateOf("") }
     var newPassword by remember{ mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
@@ -62,7 +63,14 @@ fun ChangePasswordScreen(navController: NavController) {
                 fontSize = 14.sp,
                 color = Color.Gray
             )
-
+            // Nhập mật khẩu cũ
+            OutlinedTextField(
+                value = oldPassword,
+                onValueChange = { oldPassword = it },
+                placeholder = { Text("Nhập mật khẩu cũ") },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation()
+            )
             // Nhập mật khẩu mới
             OutlinedTextField(
                 value = newPassword,
