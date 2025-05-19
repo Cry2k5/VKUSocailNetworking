@@ -30,6 +30,9 @@ import com.dacs3.socialnetworkingvku.ui.components.TopAppBarHeader
 import com.dacs3.socialnetworkingvku.ui.components.chat.MessageItem
 import com.dacs3.socialnetworkingvku.ui.theme.VKUSocialNetworkingTheme
 import com.dacs3.socialnetworkingvku.viewmodel.FollowerViewModel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun MessageScreen(navController:NavController, followerViewModel:FollowerViewModel) {
@@ -69,7 +72,19 @@ fun MessageScreen(navController:NavController, followerViewModel:FollowerViewMod
                     MessageItem(
                         name = follow.username,
                         avatar = follow.avatar?:"",
-                        message = "testlastmessage",
+                        message = buildString {
+                            if (!follow.lastMessage.isNullOrBlank()) {
+                                if (follow.lastMessageSenderId == currentUserId) {
+                                    append("Bạn: ")
+                                }
+                                append(follow.lastMessage)
+                                follow.lastMessageTimestamp?.let {
+                                    append(" ~ ${formatTimestamp(it)}")
+                                }
+                            } else {
+                                append("Chưa có tin nhắn")
+                            }
+                        },
                         unreadCount = 1,
                         onClick = {
                             navController.navigate("chat/${currentUserId}/${follow.userId}/${follow.username}")
@@ -80,37 +95,9 @@ fun MessageScreen(navController:NavController, followerViewModel:FollowerViewMod
         }
     }
 }
+fun formatTimestamp(timestamp: Long): String {
+    val dateTime = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDateTime()
+    val formatter = DateTimeFormatter.ofPattern("HH:mm") // hoặc "dd/MM/yyyy HH:mm"
+    return dateTime.format(formatter)
+}
 
-//data class Follow(
-//    val userId: Long,
-//    val username: String,
-//    val avatar: String?,
-//    val lastMessage: String?,
-//    val lastMessageSenderId: Long?,
-//    val lastMessageTimestamp: Long?
-//)
-
-//import java.time.LocalDateTime
-//import java.time.format.DateTimeFormatter
-//import java.util.Locale
-//
-//fun formatLocalDateTime(datetimeStr: String): String {
-//    val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
-//    val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-//
-//    val dateTime = LocalDateTime.parse(datetimeStr, inputFormatter)
-//    return outputFormatter.format(dateTime)
-//}
-//message = buildString {
-//    if (follow.lastMessage != null) {
-//        if (follow.lastMessageSenderId == currentUserId) {
-//            append("Bạn: ")
-//        }
-//        append(follow.lastMessage)
-//        if (follow.lastMessageTimestamp != null) {
-//            append(" ~ ${formatTimestamp(follow.lastMessageTimestamp)}")
-//        }
-//    } else {
-//        append("Chưa có tin nhắn")
-//    }
-//},

@@ -74,7 +74,6 @@ fun ChatScreen(
     }
     val listState = rememberLazyListState()
 
-    val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     val allMessages = (receiverMessages.map { it.toMessageDTO() } + socketMessages)
     // Scroll tới cuối mỗi khi có tin nhắn mới
     LaunchedEffect(allMessages.size) {
