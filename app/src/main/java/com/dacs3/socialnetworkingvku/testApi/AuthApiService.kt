@@ -14,6 +14,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Query
 
 interface AuthApiService {
@@ -62,5 +63,13 @@ interface AuthApiService {
     @POST("auth/google")
     @FormUrlEncoded
     suspend fun loginWithGoogle(@Field("token") idToken: String): Response<LoginResponse>
+
+    @PUT("auth/change-password")
+    @FormUrlEncoded
+    suspend fun changePassword(
+        @Header("Authorization") authorization: String,
+        @Field("oldPassword") oldPassword: String,
+        @Field("newPassword") newPassword: String
+    ): Response<ApiResponse>
 
 }

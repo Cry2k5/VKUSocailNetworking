@@ -8,6 +8,7 @@ import com.dacs3.socialnetworkingvku.data.auth.response.LoginResponse
 import com.dacs3.socialnetworkingvku.data.user.UserDto
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.AuthApiService
+import kotlinx.coroutines.flow.first
 
 class AuthRepository(
     private val authApiService: AuthApiService,
@@ -214,6 +215,27 @@ class AuthRepository(
                 Log.e("LoginScreen", "Login failed: ${response.code()}")
                 return Result.failure(Exception("Login failed: ${response.code()}"))
             }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun changePassword(oldPassword: String, newPassword: String): Result<Unit> {
+        val token = "Bearer ${tokenStoreManager.accessTokenFlow.first()}"
+        return try {
+            val response = authApiService.changePassword(token,oldPassword, newPassword)
+            if (response.isSuccessful) {
+                Log.d("AuthRepository", "Change password response: ${response.body()}")
+                val apiResponse = response.body()
+                if (apiResponse != null) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                Result.failure(Exception("Change password failed: ${response.code()}"))
+            }
+
         } catch (e: Exception) {
             Result.failure(e)
         }

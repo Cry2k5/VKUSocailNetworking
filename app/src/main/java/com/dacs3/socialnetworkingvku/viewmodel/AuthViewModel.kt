@@ -162,6 +162,22 @@ class AuthViewModel(private val repository: AuthRepository, private val tokenSto
         }
     }
 
+    fun changePassword(oldPassword:String, newPassword:String)
+    {
+        _isLoading.value = true
+        _errorMessage.value = null
+        _isSuccess.value = false
+        viewModelScope.launch {
+            val result = repository.changePassword(oldPassword, newPassword)
+            _isLoading.value = false
+            if(result.isSuccess){
+                _isSuccess.value = true
+            }else {
+                _errorMessage.value = result.exceptionOrNull()?.message ?: "Đổi mật khẩu thất bại"
+            }
+        }
+    }
+
     fun logout(email: String){
         _isLoading.value = true
         _errorMessage.value = null

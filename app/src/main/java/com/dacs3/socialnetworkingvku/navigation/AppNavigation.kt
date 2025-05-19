@@ -75,7 +75,7 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
         composable("notification") { NotificationScreen(navController = navController) }
         composable("profile") { ProfileScreen(navController = navController, userViewModel =  userViewModel) }
         composable("change_password") {
-            ChangePasswordScreen(navController = navController)
+            ChangePasswordScreen(navController = navController, authViewModel = viewModel)
         }
         composable("menu"){
             MenuScreen(navController = navController, authViewModel = viewModel, userViewModel = userViewModel)
