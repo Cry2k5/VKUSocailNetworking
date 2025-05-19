@@ -17,6 +17,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -61,7 +63,7 @@ fun CreatePostScreen(
         }
     )
 
-    // Khi có sự thay đổi về ảnh, gọi đến ViewModel để xử lý API
+    // Gọi API AI
     LaunchedEffect(selectedImageUri) {
         selectedImageUri?.let { uri ->
             try {
@@ -83,8 +85,6 @@ fun CreatePostScreen(
                         )
                     )
                 )
-
-                // Gọi đến ViewModel để lấy phản hồi từ API
                 geminiViewModel.generateContent(request)
             } catch (e: Exception) {
                 aiCaption = "Không thể kết nối đến AI"
@@ -93,23 +93,16 @@ fun CreatePostScreen(
         }
     }
 
-    // Khi có dữ liệu trả về từ AI, cập nhật aiCaption
     val aiResponse = geminiViewModel.aiContent.value
-    aiResponse?.let {
-        aiCaption = it
-    }
+    aiResponse?.let { aiCaption = it }
 
     fun showToast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
     LaunchedEffect(uploadState) {
-        when (uploadState) {
-            UploadState.Success -> {
-                uploadedImageUrl?.let {
-                    postViewModel.createPost(postContent.text, it)
-                }
-            }
-            UploadState.Error -> showToast("Tải ảnh thất bại")
-            else -> {}
+        if (uploadState == UploadState.Success) {
+            uploadedImageUrl?.let { postViewModel.createPost(postContent.text, it) }
+        } else if (uploadState == UploadState.Error) {
+            showToast("Tải ảnh thất bại")
         }
     }
 
@@ -137,132 +130,138 @@ fun CreatePostScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(horizontal = 16.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text("Người dùng", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = "Chỉ mình tôi ⌄",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.clickable {
-                            showToast("Tính năng chưa phát triển")
-                        }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Text field
-            OutlinedTextField(
-                value = postContent,
-                onValueChange = { postContent = it },
-                placeholder = { Text("Bạn đang nghĩ gì?") },
+            LazyColumn (
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 150.dp),
-                maxLines = 10,
-                textStyle = MaterialTheme.typography.bodyLarge,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Image + AI caption
-            selectedImageUri?.let { uri ->
-                Image(
-                    painter = rememberAsyncImagePainter(uri),
-                    contentDescription = "Ảnh",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-
-                aiCaption?.let {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (it == "Đang tạo nội dung với AI...") {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .padding(end = 6.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                        Text(
-                            text = "🧠 Gợi ý: $it",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-
-                    TextButton(
-                        onClick = {
-                            postContent = TextFieldValue(
-                                postContent.text + if (postContent.text.endsWith(" ")) it else " $it"
-                            )
-                            aiCaption = null
-                        }
-                    ) {
-                        Text("Dùng gợi ý này")
-                    }
-                }
-
-                TextButton(
-                    onClick = {
-                        selectedImageUri = null
-                        aiCaption = null
-                    },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Xóa ảnh", color = MaterialTheme.colorScheme.error)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Divider()
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .padding(horizontal = 16.dp)
+                    .weight(1f)
             ) {
-                PostOption(icon = Icons.Default.Image, text = "Ảnh/Video") {
-                    pickImageLauncher.launch("image/*")
-                }
-                PostOption(icon = Icons.Default.Person, text = "Gắn thẻ") {
-                    showToast("Tính năng chưa phát triển")
-                }
-                PostOption(icon = Icons.Default.EmojiEmotions, text = "Cảm xúc") {
-                    showToast("Tính năng chưa phát triển")
-                }
-                PostOption(icon = Icons.Default.Place, text = "Check-in") {
-                    showToast("Tính năng chưa phát triển")
+                item {
+                    // Header
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Người dùng", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = "Chỉ mình tôi ⌄",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.clickable {
+                                    showToast("Tính năng chưa phát triển")
+                                }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Text field
+                    OutlinedTextField(
+                        value = postContent,
+                        onValueChange = { postContent = it },
+                        placeholder = { Text("Bạn đang nghĩ gì?") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 150.dp),
+                        maxLines = 10,
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    selectedImageUri?.let { uri ->
+                        Image(
+                            painter = rememberAsyncImagePainter(uri),
+                            contentDescription = "Ảnh",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        aiCaption?.let {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (it == "Đang tạo nội dung với AI...") {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .padding(end = 6.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                                Text(
+                                    text = "🧠 Gợi ý: $it",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                            }
+
+                            TextButton(onClick = {
+                                postContent = TextFieldValue(
+                                    postContent.text + if (postContent.text.endsWith(" ")) it else " $it"
+                                )
+                                aiCaption = null
+                            }) {
+                                Text("Dùng gợi ý này")
+                            }
+                        }
+
+                        TextButton(
+                            onClick = {
+                                selectedImageUri = null
+                                aiCaption = null
+                            },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Xóa ảnh", color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Divider()
+
+                    LazyRow (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        item {
+                            PostOption(icon = Icons.Default.Image, text = "Ảnh/Video") {
+                                pickImageLauncher.launch("image/*")
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            PostOption(icon = Icons.Default.Person, text = "Gắn thẻ") {
+                                showToast("Tính năng chưa phát triển")
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            PostOption(icon = Icons.Default.EmojiEmotions, text = "Cảm xúc") {
+                                showToast("Tính năng chưa phát triển")
+                            }
+                        }
+                    }
+
+                    Divider()
                 }
             }
 
-            Divider()
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Submit button
+            // Button "Đăng"
             Button(
                 onClick = {
-                        postContent = TextFieldValue(postContent.text)
+                    postContent = TextFieldValue(postContent.text)
                     if (selectedImageUri != null) {
                         postViewModel.uploadImage(selectedImageUri!!, context)
                     } else {
@@ -273,7 +272,7 @@ fun CreatePostScreen(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 if (uploadState == UploadState.Loading) {
                     CircularProgressIndicator(
