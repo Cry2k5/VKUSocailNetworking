@@ -59,15 +59,11 @@ fun HomeScreen(
             .crossfade(true)
             .build()
     }
-    // Đảo ngược danh sách bài viết để hiển thị từ dưới lên
     val reversedPostsForScreen = postsForScreen.reversed()
     // Sử dụng LazyListState để giữ vị trí cuộn
     val lazyListState = rememberLazyListState()
-//    LaunchedEffect(postsForScreen) {
-//        postViewModel.getPostsForHomeScreen()
-//        Log.d("HomeScreen", postsForScreen.toString())
-//        postViewModel.resetState()
-//    }
+
+
 
     LaunchedEffect(Unit) {
         postViewModel.getPostsForHomeScreen()
