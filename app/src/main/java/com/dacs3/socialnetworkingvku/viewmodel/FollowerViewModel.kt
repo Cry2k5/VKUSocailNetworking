@@ -39,7 +39,7 @@ class FollowerViewModel(private val repository: FollowerRepository) : ViewModel(
         viewModelScope.launch {
             val result = repository.follow(userId)
             if (result.isSuccess) {
-                // ✅ Cập nhật trực tiếp UI state
+
                 val user = _peopleList.value?.find { it.userId == userId }
                 user?.let {
                     _followingList.value = (_followingList.value ?: emptyList()) + it

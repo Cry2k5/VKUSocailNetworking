@@ -7,11 +7,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dacs3.socialnetworkingvku.data.user.User
 import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
+import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
+import com.dacs3.socialnetworkingvku.data.auth.response.LoginResponse
 import com.dacs3.socialnetworkingvku.data.user.UserDto
 import com.dacs3.socialnetworkingvku.repository.AuthRepository
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
+import com.dacs3.socialnetworkingvku.testApi.AuthApiService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class AuthViewModel(private val repository: AuthRepository, private val tokenStoreManager: TokenStoreManager) : ViewModel() {
     private val _isLoading = mutableStateOf(false)
@@ -41,11 +50,17 @@ class AuthViewModel(private val repository: AuthRepository, private val tokenSto
     private val _otpErrorMessage = mutableStateOf<String?>(null)
     val otpErrorMessage: State<String?> = _otpErrorMessage
 
+    val googleLoginSuccess = mutableStateOf<Boolean?>(null) // null: chưa login, true: thành công, false: lỗi
+    val googleLoginErrorMessage = mutableStateOf<String?>(null)
     // Phương thức lưu trữ dữ liệu đăng ký
     fun cacheRegisterData(request: RegisterRequest) {
         Log.d("AuthViewModel", "Caching register data: $request")
         _pendingRegisterData.value = request
     }
+
+    val isLoggedIn: StateFlow<Boolean> = tokenStoreManager.accessTokenFlow
+        .map { token -> !token.isNullOrEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     fun login(email: String, password: String) {
         Log.d("AuthViewModel", "Login with email: $email, password: $password")
@@ -171,5 +186,29 @@ class AuthViewModel(private val repository: AuthRepository, private val tokenSto
     }
 
 
+    fun loginWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = repository.loginWithGoogleToken(idToken)
+                if (response.isSuccess) {
+                    // Bạn thiếu xử lý cập nhật state thành công ở đây (ví dụ _isSuccess.value = true)
+                    googleLoginSuccess.value = true
+                    // Lưu user/token nếu cần (đã làm trong repository)
+                } else {
+                    googleLoginSuccess.value = false
+                    googleLoginErrorMessage.value = response.exceptionOrNull()?.message
+                }
+            } catch (e: Exception) {
+                googleLoginSuccess.value = false
+                googleLoginErrorMessage.value = e.message
+            }
+            _isLoading.value = false
+        }
+    }
+    fun resetGoogleLoginState() {
+        googleLoginSuccess.value = null
+        googleLoginErrorMessage.value = null
+    }
 }
 

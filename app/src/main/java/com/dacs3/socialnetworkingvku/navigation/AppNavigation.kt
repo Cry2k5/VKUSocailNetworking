@@ -1,7 +1,11 @@
 package com.dacs3.socialnetworkingvku.navigation
 
+import MenuScreen
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,6 +18,7 @@ import com.dacs3.socialnetworkingvku.ui.screen.home.CreatePostScreen
 import com.dacs3.socialnetworkingvku.ui.screen.home.HomeScreen
 import com.dacs3.socialnetworkingvku.ui.screen.home.PostCommentScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.AccountVerificationScreen
+import com.dacs3.socialnetworkingvku.ui.screen.login_signup.ChangePasswordScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.ForgotPasswordScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.LoginScreen
 import com.dacs3.socialnetworkingvku.ui.screen.login_signup.RegisterScreen
@@ -31,7 +36,23 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
                   geminiViewModel: GeminiViewModel) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+
+    // Khi trạng thái isLoggedIn thay đổi sẽ điều hướng
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }  // loại bỏ login khỏi back stack
+                launchSingleTop = true
+            }
+        } else {
+            navController.navigate("login") {
+                popUpTo("home") { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+    NavHost(navController = navController, startDestination = if (isLoggedIn) "home" else "login") {
         composable("login") {
             LoginScreen(viewModel = viewModel, navController = navController)
         }
@@ -50,7 +71,12 @@ fun AppNavigation(viewModel: AuthViewModel, postViewModel: PostViewModel, userVi
         composable("chat") { MessageScreen(navController = navController, followerViewModel = followerViewModel) }
         composable("notification") { NotificationScreen(navController = navController) }
         composable("profile") { ProfileScreen(navController = navController, userViewModel =  userViewModel) }
-
+        composable("change_password") {
+            ChangePasswordScreen(navController = navController)
+        }
+        composable("menu"){
+            MenuScreen(navController = navController, authViewModel = viewModel, userViewModel = userViewModel)
+        }
 
         composable("comments/{postId}") { backStackEntry ->
             val postId = backStackEntry.arguments?.getString("postId")?.toLongOrNull()

@@ -1,35 +1,68 @@
-
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.dacs3.socialnetworkingvku.R
+import com.dacs3.socialnetworkingvku.data.user.UserDto
 import com.dacs3.socialnetworkingvku.ui.components.NavigationBottom
+import com.dacs3.socialnetworkingvku.viewmodel.AuthViewModel
+import com.dacs3.socialnetworkingvku.viewmodel.UserViewModel
 
 @Composable
 fun MenuScreen(
-    navController: NavController,
-    onLogoutClick: () -> Unit = {}
+    authViewModel: AuthViewModel,
+    userViewModel: UserViewModel,
+    navController: NavController
 ) {
-    Scaffold(
-        bottomBar = {
-            NavigationBottom(navController = navController)
+    val context = LocalContext.current
+
+    val userDto by userViewModel.userDtoFlow.collectAsState(
+        initial = UserDto(0, "", "", "", "", "", "", "", "")
+    )
+    val userStats by userViewModel.userStats.observeAsState()
+    val isSuccess by authViewModel.isSuccess
+
+    LaunchedEffect(Unit) {
+        if (userDto.userId == 0L) {
+            userViewModel.getInfo()
         }
+    }
+    // Fetch user info and stats when userId is available
+    LaunchedEffect(userDto.userId) {
+        if (userDto.userId > 0) {
+            userViewModel.resetStates()
+            userViewModel.getInfo()
+            userViewModel.getUserStats(userDto.userId)
+        }
+    }
+
+    // Handle logout navigation
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            authViewModel.resetStates()
+            navController.navigate("login") {
+                popUpTo("home") { inclusive = true }
+            }
+        }
+    }
+
+    Scaffold(
+        bottomBar = { NavigationBottom(navController = navController) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -39,8 +72,8 @@ fun MenuScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Avatar
-            Image(
-                painter = painterResource(id = R.drawable.demo_image_background), // Ảnh demo
+            AsyncImage(
+                model = userDto.avatar.takeIf { !it.isNullOrBlank() } ?: R.drawable.avatar_default,
                 contentDescription = "Avatar",
                 modifier = Modifier
                     .size(80.dp)
@@ -50,50 +83,58 @@ fun MenuScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Tên người dùng
-            Text(text = "Hua Huynh Anh", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            // User name (replace hardcoded name if needed)
+            Text(text = userDto.username.ifBlank { "Người dùng" }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Thống kê
+            // User statistics
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp)
             ) {
-                ProfileStat(title = "Đã follow", value = "16")
-                ProfileStat(title = "Follower", value = "16")
-                ProfileStat(title = "Đã thích", value = "16")
+                ProfileStat("Đã follow", userStats?.following?.toString() ?: "0")
+                ProfileStat("Follower", userStats?.followers?.toString() ?: "0")
+                ProfileStat("Đã thích", userStats?.likes?.toString() ?: "0")
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Hàng 1
+            // Row 1 Buttons
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                ActionButton(text = "📁 Kho bài viết", modifier = Modifier.weight(1f))
-                ActionButton(text = "👥 Nhóm", modifier = Modifier.weight(1f))
+                ActionButton("Kho bài viết", Modifier.weight(1f)) {
+                    Toast.makeText(context, "Tính năng đang phát triển", Toast.LENGTH_SHORT).show()
+                }
+                ActionButton("Nhóm", Modifier.weight(1f)) {
+                    Toast.makeText(context, "Tính năng đang phát triển", Toast.LENGTH_SHORT).show()
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Hàng 2
+            // Row 2 Buttons
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                ActionButton(text = "Sửa thông tin", modifier = Modifier.weight(1f))
-                ActionButton(text = "Đổi mật khẩu", modifier = Modifier.weight(1f))
+                ActionButton("Sửa thông tin", Modifier.weight(1f)) {
+                    navController.navigate("profile")
+                }
+                ActionButton("Đổi mật khẩu", Modifier.weight(1f)) {
+                    navController.navigate("change_password")
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Nút đăng xuất
+            // Logout button
             Button(
-                onClick = { onLogoutClick() },
+                onClick = { authViewModel.logout(userDto.email) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 border = BorderStroke(1.dp, Color.Red),
                 modifier = Modifier
@@ -107,7 +148,6 @@ fun MenuScreen(
     }
 }
 
-
 @Composable
 fun ProfileStat(title: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -117,17 +157,11 @@ fun ProfileStat(title: String, value: String) {
 }
 
 @Composable
-fun ActionButton(text: String, modifier: Modifier = Modifier) {
+fun ActionButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     OutlinedButton(
-        onClick = { /* TODO: Xử lý sự kiện */ },
+        onClick = onClick,
         modifier = modifier
     ) {
         Text(text)
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    MenuScreen(navController = rememberNavController())
 }

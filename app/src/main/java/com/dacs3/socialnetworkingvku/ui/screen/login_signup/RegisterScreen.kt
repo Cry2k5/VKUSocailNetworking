@@ -46,6 +46,8 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
     var password by remember { mutableStateOf("") }
     var school by remember { mutableStateOf("") }
 
+    val googleLoginSuccess by viewModel.googleLoginSuccess
+    val googleLoginErrorMessage by viewModel.googleLoginErrorMessage
     // Điều hướng sang OTP khi đăng ký thành công
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
@@ -60,7 +62,22 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
         }
     }
 
-
+    LaunchedEffect(googleLoginSuccess) {
+        when (googleLoginSuccess) {
+            true -> {
+                Toast.makeText(context, "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show()
+                viewModel.resetGoogleLoginState()
+                navController.navigate("home") {
+                    popUpTo("register") { inclusive = true }
+                }
+            }
+            false -> {
+                Toast.makeText(context, "Đăng nhập Google thất bại: $googleLoginErrorMessage", Toast.LENGTH_LONG).show()
+                viewModel.resetGoogleLoginState()
+            }
+            null -> Unit
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -159,7 +176,7 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
         )
 
         Divider()
-        SignInWithGoogleScreen()
+        SignInWithGoogleScreen(viewModel)
 
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))

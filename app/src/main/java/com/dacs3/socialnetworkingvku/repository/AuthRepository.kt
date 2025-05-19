@@ -4,6 +4,7 @@ import android.util.Log
 import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.data.user.User
 import com.dacs3.socialnetworkingvku.data.auth.response.ApiResponse
+import com.dacs3.socialnetworkingvku.data.auth.response.LoginResponse
 import com.dacs3.socialnetworkingvku.data.user.UserDto
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
 import com.dacs3.socialnetworkingvku.testApi.AuthApiService
@@ -54,7 +55,10 @@ class AuthRepository(
             val response = authApiService.register(registerRequest)
 
             // Log mã trạng thái của response (successful or not)
-            Log.d("AuthRepository", "API response status: ${response.isSuccessful}, code: ${response.code()}")
+            Log.d(
+                "AuthRepository",
+                "API response status: ${response.isSuccessful}, code: ${response.code()}"
+            )
 
             // Nếu response thành công
             if (response.isSuccessful) {
@@ -71,7 +75,10 @@ class AuthRepository(
                         Result.success(apiResponse)
                     } else {
                         // Log trường hợp API trả về thông báo khác
-                        Log.d("AuthRepository", "Registration success, but with a different message: ${apiResponse.message}")
+                        Log.d(
+                            "AuthRepository",
+                            "Registration success, but with a different message: ${apiResponse.message}"
+                        )
                         Result.success(apiResponse)
                     }
                 } else {
@@ -94,11 +101,21 @@ class AuthRepository(
     }
 
 
-
-    suspend fun verifyOtp(username: String, email: String, address: String, otp: String,
-                          password: String, dateOfBirth: String, phone: String, school: String): Result<ApiResponse> {
+    suspend fun verifyOtp(
+        username: String, email: String, address: String, otp: String,
+        password: String, dateOfBirth: String, phone: String, school: String
+    ): Result<ApiResponse> {
         return try {
-            val response = authApiService.verifyOtp(username, email, address, otp, password, dateOfBirth, phone, school)
+            val response = authApiService.verifyOtp(
+                username,
+                email,
+                address,
+                otp,
+                password,
+                dateOfBirth,
+                phone,
+                school
+            )
             if (response.isSuccessful) {
                 val apiResponse = response.body()
                 if (apiResponse != null) {
@@ -148,7 +165,6 @@ class AuthRepository(
     }
 
 
-
     suspend fun logout(email: String): Result<ApiResponse> {
         return try {
             val response = authApiService.logout(email)
@@ -164,12 +180,44 @@ class AuthRepository(
             } else {
                 Result.failure(Exception("Logout failed: ${response.code()}"))
             }
-            } catch (e: Exception) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
 
     }
 
+    suspend fun loginWithGoogleToken(idToken: String): Result<LoginResponse> {
+        return try {
+            Log.d("AuthRepository", "ID Token: $idToken")
+            val response = authApiService.loginWithGoogle(idToken)
 
+            if (response.isSuccessful) {
+                Log.d("AuthRepository", "Login with Google response: ${response.body()}")
+                val loginResponse = response.body()
 
+                if (loginResponse != null) {
+                    tokenStoreManager.saveToken(
+                        loginResponse.accessToken,
+                        loginResponse.refreshToken
+                    )
+                    val user = User(
+                        id = loginResponse.user.id,
+                        email = loginResponse.user.email,
+                        name = loginResponse.user.name,
+                        avatar = loginResponse.user.avatar
+                    )
+                    tokenStoreManager.saveUser(user)
+                    Result.success(loginResponse)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                Log.d("AuthRepository", "Login with Google failed with code: ${response.code()}")
+                Log.d("AuthRepository", "Error body: ${response.errorBody()?.string()}")
+                Result.failure(Exception("Login with Google failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

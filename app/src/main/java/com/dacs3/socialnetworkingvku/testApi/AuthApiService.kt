@@ -59,7 +59,8 @@ interface AuthApiService {
         @Field("email") email: String
     ): Response<ApiResponse>
 
+    @POST("auth/google")
+    @FormUrlEncoded
+    suspend fun loginWithGoogle(@Field("token") idToken: String): Response<LoginResponse>
 
-//    wyU6rm-15kXjqEn4ElwG6zwhLaE: secrey key
-//    313163933254635: api key
 }

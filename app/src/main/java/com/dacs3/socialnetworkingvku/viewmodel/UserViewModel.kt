@@ -2,13 +2,18 @@ package com.dacs3.socialnetworkingvku.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dacs3.socialnetworkingvku.data.auth.requests.RegisterRequest
 import com.dacs3.socialnetworkingvku.data.user.User
 import com.dacs3.socialnetworkingvku.data.user.UserDto
+import com.dacs3.socialnetworkingvku.data.user.UserFollowingDto
+import com.dacs3.socialnetworkingvku.data.user.UserStatsDto
 import com.dacs3.socialnetworkingvku.data.user.requests.UserUpdateRequest
 import com.dacs3.socialnetworkingvku.repository.UserRepository
 import com.dacs3.socialnetworkingvku.security.TokenStoreManager
@@ -44,6 +49,13 @@ class UserViewModel(
     private val _errorMessage = mutableStateOf<String?>(null)
     val errorMessage: State<String?> get() = _errorMessage
     val userDtoFlow: Flow<UserDto> = tokenStoreManager.userDtoFlow
+
+    private val _isGetStatsSuccess = mutableStateOf(false)
+    val isGetStatsSuccess: State<Boolean> get() = _isGetStatsSuccess
+
+    private val _userStats = MutableLiveData<UserStatsDto>()
+    val userStats: LiveData<UserStatsDto> = _userStats
+
 
     fun getInfo() {
         _isLoading.value = true
@@ -84,13 +96,14 @@ class UserViewModel(
                                 id = it.userId,
                                 email = it.email,
                                 name = it.username,
-                                avatar = it.avatar?:""
+                                avatar = it.avatar ?: ""
                             )
                         )
                     }
                     _isUpdateSuccess.value = true
                 } else {
-                    _errorMessage.value = result.exceptionOrNull()?.message ?: "Cập nhật thất bại"
+                    _errorMessage.value =
+                        result.exceptionOrNull()?.message ?: "Cập nhật thất bại"
                 }
             } catch (e: Exception) {
                 _isLoading.value = false
@@ -99,7 +112,29 @@ class UserViewModel(
         }
     }
 
+    fun getUserStats(userId: Long) {
+        _isLoading.value = true
+        _errorMessage.value = null
+        _isGetStatsSuccess.value = false
+        viewModelScope.launch {
+            try {
+                val result = repository.getUserStats(userId)
+                _isLoading.value = false
+                if (result.isSuccess) {
+                    Log.d("UserViewModel", "Fetching user stats...")
+                    _userStats.value = result.getOrThrow()
+                    _isGetStatsSuccess.value = true
+                } else {
+                    _errorMessage.value =
+                        result.exceptionOrNull()?.message ?: "Lấy thông tin thất bại"
+                }
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.message ?: "Đã xảy ra lỗi"
+            }
 
+        }
+    }
     fun deleteAccount() {
         _isLoading.value = true
         _errorMessage.value = null
@@ -136,6 +171,7 @@ class UserViewModel(
         }
     }
 
+
     fun resetStates() {
         _isLoading.value = false
         _isSuccess.value = false
@@ -143,9 +179,9 @@ class UserViewModel(
         _isUpdateSuccess.value = false
         _isDeleteSuccess.value = false
         _uploadState.value = UploadAvatarState.Idle
+        _isGetStatsSuccess.value = false
     }
 }
-
 enum class UploadAvatarState {
     Idle,      // Chưa làm gì
     Loading,   // Đang upload

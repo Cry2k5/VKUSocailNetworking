@@ -105,5 +105,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-swiperefresh:0.28.0")
     implementation("com.cloudinary:cloudinary-android:3.0.2")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
-
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 }

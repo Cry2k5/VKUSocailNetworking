@@ -107,7 +107,6 @@ fun CreatePostScreen(
                 uploadedImageUrl?.let {
                     postViewModel.createPost(postContent.text, it)
                 }
-                postViewModel.resetState()
             }
             UploadState.Error -> showToast("Tải ảnh thất bại")
             else -> {}

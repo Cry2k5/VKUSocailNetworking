@@ -30,34 +30,45 @@ import kotlin.math.log
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, navController: NavController) {
-    // Lấy Context để hiển thị Toast
-    val context = LocalContext.current
-
-    // Lấy giá trị từ ViewModel
     val isLoading by viewModel.isLoading
     val isSuccess by viewModel.isSuccess
     val errorMessage by viewModel.errorMessage
-
-    // Khai báo state cho email và password
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var hasSubmitted by remember { mutableStateOf(false) }
+
+    val isEmailValid = remember(email) {
+        android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    val googleLoginSuccess by viewModel.googleLoginSuccess
+    val googleLoginErrorMessage by viewModel.googleLoginErrorMessage
 
     LaunchedEffect(isSuccess) {
-        Log.d("LoginScreen", "isSuccess: $isSuccess")
         if (isSuccess) {
             viewModel.resetStates()
             navController.navigate("home") {
                 popUpTo("login") { inclusive = true }
             }
-            errorMessage?.let {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            }
-
         }
     }
-
-
-    // UI của màn hình login
+    LaunchedEffect(googleLoginSuccess) {
+        when (googleLoginSuccess) {
+            true -> {
+                Toast.makeText(context, "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show()
+                viewModel.resetGoogleLoginState()
+                navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
+            false -> {
+                Toast.makeText(context, "Đăng nhập Google thất bại: $googleLoginErrorMessage", Toast.LENGTH_LONG).show()
+                viewModel.resetGoogleLoginState()
+            }
+            null -> Unit
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,58 +86,70 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavController) {
             lineHeight = 36.sp
         )
 
-        // Input email
+        // Email input
         CustomTextField(
             value = email,
             onValueChange = { email = it },
             label = "Email"
         )
+        if (hasSubmitted && email.isBlank()) {
+            Text("Vui lòng nhập email.", color = Color.Red, fontSize = 12.sp)
+        } else if (hasSubmitted && !isEmailValid) {
+            Text("Email không hợp lệ.", color = Color.Red, fontSize = 12.sp)
+        }
 
-        // Input password
+        // Password input
         CustomTextField(
             value = password,
             onValueChange = { password = it },
             label = "Mật khẩu",
             visualTransformation = PasswordVisualTransformation()
         )
+        if (hasSubmitted && password.isBlank()) {
+            Text("Vui lòng nhập mật khẩu.", color = Color.Red, fontSize = 12.sp)
+        }
 
         Text(
             text = "Quên mật khẩu",
             color = Color.Blue,
             modifier = Modifier
                 .align(Alignment.End)
-                .clickable {
-                    navController.navigate("forgot_password") // route này bạn sẽ định nghĩa trong NavHost
-                }
+                .clickable { navController.navigate("forgot_password") }
         )
 
-        // Button đăng nhập
+        // Lỗi từ ViewModel (sai tài khoản, mật khẩu)
+        if (!errorMessage.isNullOrEmpty() && hasSubmitted && email.isNotBlank() && password.isNotBlank() && isEmailValid) {
+            Text(
+                text = "Sai email hoặc mật khẩu.",
+                color = Color.Red,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+
+        // Button login
         ButtonCustom(
             text = "Đăng nhập",
             onClick = {
-                viewModel.login(email, password)
+                hasSubmitted = true
+                if (email.isNotBlank() && isEmailValid && password.isNotBlank()) {
+                    viewModel.login(email, password)
+                }
             }
         )
 
-        // Đăng ký tài khoản mới
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
             Text("Không có tài khoản? ")
             Text(
                 "Đăng kí tại đây",
                 color = Color.Blue,
-                modifier = Modifier.clickable {
-                    navController.navigate("register")
-
-                }
+                modifier = Modifier.clickable { navController.navigate("register") }
             )
         }
 
         Divider()
 
-        // Đăng nhập với Google
-        SignInWithGoogleScreen()
+        SignInWithGoogleScreen(viewModel)
 
-        // Hiển thị CircularProgressIndicator khi đang đăng nhập
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         }

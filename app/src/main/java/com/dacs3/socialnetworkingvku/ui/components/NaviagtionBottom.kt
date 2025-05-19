@@ -54,7 +54,7 @@ fun NavigationBottom(navController: NavController) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate("profile") },
+            onClick = { navController.navigate("menu") },
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Cá nhân") },
             label = { Text("Cá nhân") }
         )
